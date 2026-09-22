@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Ha Fantasy | ሀ-ፋንታሲ</title>
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
@@ -39,11 +39,13 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html, body {
       background-color: var(--color-brown-dark);
       color: var(--color-text-main);
-      min-height: 100vh;
+      width: 100%;
+      height: 100%;
       overflow-x: hidden;
+      overflow-y: auto;
     }
 
     /* SPLASH / LOADING SCREEN */
@@ -144,6 +146,8 @@
       flex-direction: column;
       min-height: 100vh;
       width: 100vw;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     /* HEADER */
@@ -230,19 +234,19 @@
 
     /* BUTTONS */
     .btn {
-      padding: 12px 16px;
+      padding: 10px 14px;
       border-radius: 10px;
       border: none;
       font-weight: 800;
       cursor: pointer;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
       flex: 1;
       text-align: center;
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .btn-primary {
@@ -255,6 +259,12 @@
       background-color: var(--color-brown-light);
       color: var(--color-text-main);
       border: 1px solid var(--color-brown-border);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10B981, #059669);
+      color: white;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
     }
 
     .full-width-btn {
@@ -345,7 +355,8 @@
 
     .card-actions {
       display: flex;
-      gap: 10px;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .home-quick-stats {
@@ -647,7 +658,6 @@
       line-height: 1.4;
     }
 
-    /* CUSTOM FINANCIAL OVERVIEW & BALANCE SNIPPET */
     .financial-overview {
       background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), var(--color-brown-card));
       border: 2px solid var(--color-wallet);
@@ -792,6 +802,8 @@
     /* BOTTOM NAV */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background-color: rgba(33, 19, 8, 0.95); backdrop-filter: blur(12px); display: flex; border-top: 1px solid var(--color-brown-border); z-index: 100;
+      max-width: 480px;
+      margin: 0 auto;
     }
 
     .nav-item {
@@ -861,8 +873,9 @@
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn btn-primary" onclick="setSquadLeague('EPL'); navigateTo('squad')" data-i18n="btnBuildSquad">Build Squad</button>
-            <button class="btn btn-secondary" onclick="setContestLeague('EPL'); navigateTo('contest')" data-i18n="btnLeaderboard">Leaderboard</button>
+            <button class="btn btn-success" onclick="joinLeagueFromWallet('EPL')"><i class="fa-solid fa-wallet"></i> Join (100 ETB)</button>
+            <button class="btn btn-primary" onclick="setSquadLeague('EPL'); navigateTo('squad')" data-i18n="btnBuildSquad">Squad</button>
+            <button class="btn btn-secondary" onclick="setContestLeague('EPL'); navigateTo('contest')" data-i18n="btnLeaderboard">Board</button>
           </div>
         </div>
 
@@ -876,8 +889,9 @@
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn btn-primary" onclick="setSquadLeague('UCL'); navigateTo('squad')" data-i18n="btnBuildSquad">Build Squad</button>
-            <button class="btn btn-secondary" onclick="setContestLeague('UCL'); navigateTo('contest')" data-i18n="btnLeaderboard">Leaderboard</button>
+            <button class="btn btn-success" onclick="joinLeagueFromWallet('UCL')"><i class="fa-solid fa-wallet"></i> Join (100 ETB)</button>
+            <button class="btn btn-primary" onclick="setSquadLeague('UCL'); navigateTo('squad')" data-i18n="btnBuildSquad">Squad</button>
+            <button class="btn btn-secondary" onclick="setContestLeague('UCL'); navigateTo('contest')" data-i18n="btnLeaderboard">Board</button>
           </div>
         </div>
 
@@ -1203,32 +1217,66 @@
     let totalWinnings = 2400;
     let totalDeposits = 200;
 
-    /* SPLASH SCREEN CONTROLLER */
+    /* SCREEN FITTING & TELEGRAM INITIALIZATION */
     window.addEventListener("load", () => {
       const progressBar = document.getElementById("loader-progress");
       const loadingScreen = document.getElementById("loading-screen");
 
       let width = 0;
       const interval = setInterval(() => {
-        width += 10;
+        width += 15;
         if (progressBar) progressBar.style.width = `${width}%`;
         
         if (width >= 100) {
           clearInterval(interval);
           setTimeout(() => {
             if (loadingScreen) loadingScreen.classList.add("hidden");
-          }, 300);
+          }, 200);
         }
-      }, 100);
+      }, 80);
 
       updateWalletDisplay();
+
+      // Telegram WebApp Fit & Configuration
+      if (window.Telegram?.WebApp) {
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        if (tg.setHeaderColor) tg.setHeaderColor('#120A04');
+        if (tg.setBackgroundColor) tg.setBackgroundColor('#120A04');
+        
+        if (tg.initDataUnsafe?.user) {
+          const user = tg.initDataUnsafe.user;
+          document.getElementById('prof-display-name').innerText = `${user.first_name} ${user.last_name || ''}`;
+          document.getElementById('prof-user-id').innerText = `ID: ${user.id}`;
+        }
+      }
     });
 
     function updateWalletDisplay() {
       const totalBalance = walletBalance + totalWinnings + totalDeposits;
-
       document.getElementById('total-balance-disp').innerText = `${totalBalance.toLocaleString()} ETB`;
       document.getElementById('prof-user-winnings').innerText = `${totalWinnings.toLocaleString()} ETB`;
+    }
+
+    /* JOIN LEAGUE DIRECTLY FROM WALLET */
+    function joinLeagueFromWallet(leagueName) {
+      const entryFee = 100;
+      if (walletBalance < entryFee) {
+        alert(`⚠️ Insufficient wallet balance! You need at least ${entryFee} ETB to join the ${leagueName} league. Please deposit funds first.`);
+        navigateTo('wallet');
+        return;
+      }
+
+      // Deduct from wallet balance
+      walletBalance -= entryFee;
+      updateWalletDisplay();
+
+      alert(`🎉 Successfully joined the ${leagueName} League! ${entryFee} ETB has been deducted from your wallet.`);
+      
+      // Navigate to squad builder to set up their team
+      setSquadLeague(leagueName);
+      navigateTo('squad');
     }
 
     /* PLAYER DATABASE ENGINE */
@@ -1287,8 +1335,8 @@
       en: {
         welcomeTitle: "Welcome to Ha Fantasy!",
         welcomeSub: "Pick your league, build your squad, and win big daily prizes.",
-        btnBuildSquad: "Build Squad",
-        btnLeaderboard: "Leaderboard",
+        btnBuildSquad: "Squad",
+        btnLeaderboard: "Board",
         navHome: "Home",
         navContest: "Contest",
         navSquad: "Squad",
@@ -1311,8 +1359,8 @@
       am: {
         welcomeTitle: "እንኳን ወደ ሀ-ፋንታሲ በደህና መጡ!",
         welcomeSub: "ሊግዎን ይምረጡ፣ ቡድንዎን ይገንቡ እና ዕለታዊ ታላላቅ ሽልማቶችን ያሸንፉ::",
-        btnBuildSquad: "ቡድን ይገንቡ",
-        btnLeaderboard: "ደረጃ ሰንጠረዥ",
+        btnBuildSquad: "ቡድን",
+        btnLeaderboard: "ደረጃ",
         navHome: "ዋና ገጽ",
         navContest: "ውድድር",
         navSquad: "ቡድን",
@@ -1342,16 +1390,6 @@
       recalculateBudget();
       renderPitch();
       setContestLeague('EPL');
-
-      if (window.Telegram?.WebApp) {
-        const tg = window.Telegram.WebApp;
-        tg.expand();
-        if (tg.initDataUnsafe?.user) {
-          const user = tg.initDataUnsafe.user;
-          document.getElementById('prof-display-name').innerText = `${user.first_name} ${user.last_name || ''}`;
-          document.getElementById('prof-user-id').innerText = `ID: ${user.id}`;
-        }
-      }
     });
 
     function navigateTo(tabId) {
@@ -1361,6 +1399,7 @@
       document.getElementById(`sec-${tabId}`).classList.add('active');
       const navBtn = document.getElementById(`nav-${tabId}`);
       if (navBtn) navBtn.classList.add('active');
+      window.scrollTo(0, 0);
     }
 
     function setLanguage(lang) {
