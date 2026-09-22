@@ -515,6 +515,13 @@
       border: 2px solid var(--color-gold);
       background-color: #FFFFFF;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+
+    .jersey-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .jersey-ucl-style {
@@ -996,7 +1003,7 @@
           </div>
           <div class="squad-info-chip">
             <span class="chip-label" data-i18n="labelPlayers">Squad:</span>
-            <span class="chip-value" id="sq-count">15/15</span>
+            <span class="chip-value" id="sq-count">0/15</span>
           </div>
         </div>
 
@@ -1215,7 +1222,7 @@
           <div style="text-align:center; margin-bottom:16px;">
             <p style="color:var(--color-text-muted); font-size:0.85rem;" id="p-modal-team"></p>
             <h2 style="color:var(--color-gold); font-size:2rem; margin:8px 0;" id="p-modal-points">0 PTS</h2>
-            <p style="font-size:0.75rem; color:var(--color-text-muted);">Points in Last Gameweek</p>
+            <p style="font-size:0.75rem; color:var(--color-text-muted);">Total Points</p>
           </div>
           <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn btn-primary" onclick="setCaptain()">Make Captain (C)</button>
@@ -1246,7 +1253,7 @@
             <button onclick="filterMarket('MID')" class="filter-btn" id="f-MID">MID</button>
             <button onclick="filterMarket('FWD')" class="filter-btn" id="f-FWD">FWD</button>
           </div>
-          <div id="market-list"></div>
+          <div id="market-list">Loading players from Supabase...</div>
         </div>
       </div>
     </div>
@@ -1280,7 +1287,7 @@
   <!-- JAVASCRIPT CODE -->
   <script>
     const SUPABASE_URL = 'https://ddnznnflhtsiztlhuooc.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkbnpubmZsaHRzaXp0bGh1b29jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAwMzM1MjYsImV4cCI6MjEwNTYwOTUyNn0.QgJO5r-J4ck6R0G7dUN6f07ZuIB1YFVoTHkhhiNLxYI';
+    const SUPABASE_ANON_KEY = 'sb_publishable_Q-IDTQruKud0hc_nvv4_dg_6h1d3Avr';
     let supabaseClient = null;
 
     if (window.supabase) {
@@ -1292,8 +1299,11 @@
     let totalWinnings = 2400;
     let totalDeposits = 200;
 
+    /* DYNAMIC DATABASE CACHE */
+    let allPlayersFromSupabase = [];
+
     /* SCREEN FITTING & TELEGRAM INITIALIZATION */
-    window.addEventListener("load", () => {
+    window.addEventListener("load", async () => {
       const progressBar = document.getElementById("loader-progress");
       const loadingScreen = document.getElementById("loading-screen");
 
@@ -1312,6 +1322,7 @@
 
       updateWalletDisplay();
       renderFixtures('EPL');
+      await fetchPlayersFromSupabase();
 
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -1327,6 +1338,43 @@
         }
       }
     });
+
+    async function fetchPlayersFromSupabase() {
+      if (!supabaseClient) {
+        console.error("Supabase client not initialized.");
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from('players')
+        .select('*');
+
+      if (error) {
+        console.error('Error fetching players:', error.message);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        allPlayersFromSupabase = data.map((p, index) => ({
+          id: p.id || index + 1,
+          name: p.name,
+          pos: p.position,
+          team: p.club,
+          price: p.price || 5.0,
+          totalPts: p.total_points || 0,
+          photoUrl: p.photo_url || p.face_url || ''
+        }));
+
+        // Default initial squad if empty
+        if (selectedSquad.length === 0 && allPlayersFromSupabase.length >= 15) {
+          selectedSquad = allPlayersFromSupabase.slice(0, 15);
+          captainId = selectedSquad[5]?.id;
+          viceCaptainId = selectedSquad[9]?.id;
+          recalculateBudget();
+          renderPitch();
+        }
+      }
+    }
 
     function updateWalletDisplay() {
       const totalBalance = walletBalance + totalWinnings + totalDeposits;
@@ -1348,44 +1396,6 @@
       setSquadLeague(leagueName);
       navigateTo('squad');
     }
-
-    /* PLAYER DATABASE ENGINE */
-    const playerDatabase = {
-      EPL: [
-        { id: 1, name: "Raya", pos: "GKP", team: "ARS", price: 5.5, lastPts: 6 },
-        { id: 2, name: "Gabriel", pos: "DEF", team: "ARS", price: 6.0, lastPts: 8 },
-        { id: 3, name: "Gvardiol", pos: "DEF", team: "MCI", price: 6.0, lastPts: 2 },
-        { id: 4, name: "Alexander-A.", pos: "DEF", team: "LIV", price: 7.0, lastPts: 12 },
-        { id: 5, name: "Saliba", pos: "DEF", team: "ARS", price: 6.0, lastPts: 6 },
-        { id: 6, name: "Salah", pos: "MID", team: "LIV", price: 12.5, lastPts: 15 },
-        { id: 7, name: "Palmer", pos: "MID", team: "CHE", price: 10.5, lastPts: 10 },
-        { id: 8, name: "Saka", pos: "MID", team: "ARS", price: 10.0, lastPts: 7 },
-        { id: 9, name: "Mbeumo", pos: "MID", team: "BRE", price: 7.5, lastPts: 9 },
-        { id: 10, name: "Haaland", pos: "FWD", team: "MCI", price: 15.0, lastPts: 13 },
-        { id: 11, name: "Wood", pos: "FWD", team: "NFO", price: 6.5, lastPts: 6 },
-        { id: 12, name: "Fabianski", pos: "GKP", team: "WHU", price: 4.0, lastPts: 0 },
-        { id: 13, name: "Rogers", pos: "MID", team: "AVL", price: 5.5, lastPts: 3 },
-        { id: 14, name: "Greaves", pos: "DEF", team: "IPS", price: 4.0, lastPts: 1 },
-        { id: 15, name: "Bednarek", pos: "DEF", team: "SOU", price: 4.0, lastPts: 2 }
-      ],
-      UCL: [
-        { id: 101, name: "Courtois", pos: "GKP", team: "RMA", price: 6.0, lastPts: 7 },
-        { id: 102, name: "Carvajal", pos: "DEF", team: "RMA", price: 5.5, lastPts: 6 },
-        { id: 103, name: "Rüdiger", pos: "DEF", team: "RMA", price: 5.5, lastPts: 9 },
-        { id: 104, name: "Marquinhos", pos: "DEF", team: "PSG", price: 5.0, lastPts: 4 },
-        { id: 105, name: "Bellingham", pos: "MID", team: "RMA", price: 9.5, lastPts: 11 },
-        { id: 106, name: "De Bruyne", pos: "MID", team: "MCI", price: 9.5, lastPts: 8 },
-        { id: 107, name: "Musiala", pos: "MID", team: "BAY", price: 9.0, lastPts: 14 },
-        { id: 108, name: "Wirtz", pos: "MID", team: "B04", price: 8.0, lastPts: 10 },
-        { id: 109, name: "Vinícius Jr", pos: "FWD", team: "RMA", price: 11.0, lastPts: 12 },
-        { id: 110, name: "Mbappé", pos: "FWD", team: "RMA", price: 11.0, lastPts: 16 },
-        { id: 111, name: "Kane", pos: "FWD", team: "BAY", price: 10.5, lastPts: 13 },
-        { id: 112, name: "Lunin", pos: "GKP", team: "RMA", price: 4.5, lastPts: 0 },
-        { id: 113, name: "Hakimi", pos: "DEF", team: "PSG", price: 5.5, lastPts: 5 },
-        { id: 114, name: "Camavinga", pos: "MID", team: "RMA", price: 6.0, lastPts: 2 },
-        { id: 115, name: "Rodrygo", pos: "FWD", team: "RMA", price: 9.0, lastPts: 7 }
-      ]
-    };
 
     /* FIXTURES DATABASE */
     const fixturesDatabase = {
@@ -1470,10 +1480,6 @@
     };
 
     document.addEventListener("DOMContentLoaded", () => {
-      selectedSquad = [...playerDatabase.EPL];
-      captainId = selectedSquad[5].id;
-      viceCaptainId = selectedSquad[9].id;
-      
       recalculateBudget();
       renderPitch();
       setContestLeague('EPL');
@@ -1554,9 +1560,6 @@
       const pitch = document.getElementById('pitch-container');
       pitch.className = league === 'EPL' ? 'pitch-fpl' : 'pitch-ucl';
 
-      selectedSquad = [...playerDatabase[league]];
-      captainId = selectedSquad[5].id;
-      viceCaptainId = selectedSquad[9].id;
       swapFirstPlayer = null;
       transferOutPlayer = null;
 
@@ -1625,9 +1628,13 @@
       if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
 
       const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
+      const avatarHTML = player.photoUrl 
+        ? `<img src="${player.photoUrl}" alt="${player.name}" onerror="this.style.display='none'" />` 
+        : `<i class="fa-solid fa-shirt"></i>`;
+
       div.innerHTML = `
         ${badge}
-        <div class="jersey-icon ${uclClass}"><i class="fa-solid fa-shirt"></i></div>
+        <div class="jersey-icon ${uclClass}">${avatarHTML}</div>
         <span class="player-name-tag">${player.name}</span>
         <span class="player-price-tag">£${player.price}m</span>
       `;
@@ -1655,7 +1662,7 @@
       selectedPlayerForAction = player;
       document.getElementById('p-modal-name').innerText = player.name;
       document.getElementById('p-modal-team').innerText = `${player.pos} (${player.team}) - £${player.price}m`;
-      document.getElementById('p-modal-points').innerText = `${player.lastPts} PTS`;
+      document.getElementById('p-modal-points').innerText = `${player.totalPts} PTS`;
       document.getElementById('modal-player').classList.add('active');
     }
 
@@ -1775,8 +1782,13 @@
       const list = document.getElementById('market-list');
       list.innerHTML = '';
 
-      const pool = playerDatabase[currentSquadLeague];
+      const pool = allPlayersFromSupabase;
       const filtered = pos === 'ALL' ? pool : pool.filter(p => p.pos === pos);
+
+      if (filtered.length === 0) {
+        list.innerHTML = `<div style="text-align:center; color:var(--color-text-muted); padding:20px;">No players found in Supabase table.</div>`;
+        return;
+      }
 
       filtered.forEach(p => {
         const isSelected = selectedSquad.some(item => item.id === p.id);
@@ -1787,13 +1799,16 @@
         let btnText = 'Add';
 
         if (transferOutPlayer) {
-          btnAction = `completeTransfer(playerDatabase['${currentSquadLeague}'].find(x => x.id === ${p.id}))`;
+          btnAction = `completeTransfer(allPlayersFromSupabase.find(x => x.id === ${p.id}))`;
           btnText = 'Transfer In';
         }
 
         item.innerHTML = `
-          <div>
-            <strong>${p.name}</strong> <small>(${p.pos} - ${p.team})</small>
+          <div style="display:flex; align-items:center; gap:8px;">
+            ${p.photoUrl ? `<img src="${p.photoUrl}" width="32" height="32" style="border-radius:50%; object-fit:cover;" onerror="this.style.display='none'"/>` : ''}
+            <div>
+              <strong>${p.name}</strong> <small>(${p.pos} - ${p.team})</small>
+            </div>
           </div>
           <div>
             <span style="margin-right: 8px;">£${p.price}m</span>
@@ -1807,8 +1822,7 @@
     }
 
     function addPlayer(id) {
-      const pool = playerDatabase[currentSquadLeague];
-      const player = pool.find(p => p.id === id);
+      const player = allPlayersFromSupabase.find(p => p.id === id);
 
       if (!player || selectedSquad.length >= 15) return;
       if (squadBudget < player.price) {
@@ -2049,4 +2063,3 @@
   </script>
 </body>
 </html>
-
