@@ -13,7 +13,6 @@
   
   <style>
     :root {
-      /* Warm Dark Brown & Gold Theme */
       --color-gold: #FFB703;
       --color-gold-light: #FFD166;
       --color-gold-glow: rgba(255, 183, 3, 0.35);
@@ -329,7 +328,6 @@
       padding: 16px;
       margin-bottom: 14px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-      position: relative;
     }
 
     .league-header {
@@ -422,7 +420,7 @@
     .squad-header-bar {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
 
     .squad-info-chip {
@@ -435,6 +433,29 @@
 
     .chip-label { color: var(--color-text-muted); }
     .chip-value { color: var(--color-gold); font-weight: 800; }
+
+    /* CHIPS CONTAINER */
+    .chips-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .chip-action-btn {
+      flex: 1;
+      background: var(--color-brown-card);
+      border: 1px solid var(--color-brown-border);
+      color: var(--color-text-muted);
+      padding: 8px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .chip-action-btn.active {
+      border-color: var(--color-gold);
+      color: var(--color-gold);
+      background: rgba(255, 183, 3, 0.1);
+    }
 
     .pitch-fpl {
       background: repeating-linear-gradient(0deg, #2E7D32, #2E7D32 40px, #25632A 40px, #25632A 80px);
@@ -564,6 +585,42 @@
       text-transform: uppercase;
       margin-bottom: 6px;
       font-weight: 800;
+    }
+
+    /* FIXTURES SECTION */
+    .fixture-card {
+      background: var(--color-brown-card);
+      border: 1px solid var(--color-brown-border);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .fixture-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      color: var(--color-text-muted);
+      border-bottom: 1px solid var(--color-brown-border);
+      padding-bottom: 6px;
+    }
+    .fixture-matchup {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+    .fixture-score-box {
+      background: var(--color-brown-dark);
+      padding: 6px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--color-gold);
+      color: var(--color-gold);
+      font-size: 1.1rem;
+      letter-spacing: 2px;
     }
 
     /* CONTEST & LEADERBOARD */
@@ -903,17 +960,29 @@
               <span class="quick-stat-lbl">Deposit / Withdraw</span>
             </div>
           </div>
-          <div class="quick-stat-card" onclick="alert('Fixtures:\nEPL: Arsenal vs Chelsea\nUCL: Real Madrid vs Bayern')">
+          <div class="quick-stat-card" onclick="navigateTo('fixtures')">
             <i class="fa-solid fa-calendar-days quick-stat-icon"></i>
             <div class="quick-stat-info">
               <span class="quick-stat-val" data-i18n="btnFixtures">Fixtures</span>
-              <span class="quick-stat-lbl">Live Gameweek</span>
+              <span class="quick-stat-lbl">Live Match Center</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- 2. SQUAD BUILDER SECTION -->
+      <!-- 2. FIXTURES & LIVE SCORES SECTION -->
+      <section id="sec-fixtures" class="tab-content">
+        <div class="league-toggle">
+          <button id="fix-toggle-epl" class="toggle-btn active" onclick="setFixtureLeague('EPL')">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</button>
+          <button id="fix-toggle-ucl" class="toggle-btn" onclick="setFixtureLeague('UCL')">Champions League ⭐</button>
+        </div>
+
+        <div id="fixtures-container">
+          <!-- Populated dynamically -->
+        </div>
+      </section>
+
+      <!-- 3. SQUAD BUILDER SECTION -->
       <section id="sec-squad" class="tab-content">
         <div class="league-toggle">
           <button id="sq-toggle-epl" class="toggle-btn active" onclick="setSquadLeague('EPL')">Premier League (100 ETB)</button>
@@ -929,6 +998,12 @@
             <span class="chip-label" data-i18n="labelPlayers">Squad:</span>
             <span class="chip-value" id="sq-count">15/15</span>
           </div>
+        </div>
+
+        <!-- CHIPS BOOSTS -->
+        <div class="chips-bar">
+          <button id="chip-tc" class="chip-action-btn" onclick="toggleChip('TC')"><i class="fa-solid fa-bolt"></i> Triple Captain</button>
+          <button id="chip-bb" class="chip-action-btn" onclick="toggleChip('BB')"><i class="fa-solid fa-users-rectangle"></i> Bench Boost</button>
         </div>
 
         <!-- PITCH DISPLAY CONTAINER -->
@@ -954,7 +1029,7 @@
         </button>
       </section>
 
-      <!-- 3. CONTEST & LIVE LEADERBOARD SECTION -->
+      <!-- 4. CONTEST & LIVE LEADERBOARD SECTION -->
       <section id="sec-contest" class="tab-content">
         <div class="league-toggle">
           <button id="toggle-epl" class="toggle-btn active" onclick="setContestLeague('EPL')">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</button>
@@ -1005,7 +1080,7 @@
         </div>
       </section>
 
-      <!-- 4. WALLET SECTION -->
+      <!-- 5. WALLET SECTION -->
       <section id="sec-wallet" class="tab-content">
         <div class="wallet-notice">
           🚨 እባክዎ ከጠዋቱ 4 ሰዓት እስከ ከምሽቱ 3 ሰዓት ገንዘብ ያስገቡ እና ያውጡ፤ ከዚያ ውጪ ያለውን አንቀበልም።
@@ -1092,7 +1167,7 @@
         </div>
       </section>
 
-      <!-- 5. PROFILE SECTION -->
+      <!-- 6. PROFILE SECTION -->
       <section id="sec-profile" class="tab-content">
         <div class="profile-hero-card">
           <div class="avatar-circle">
@@ -1236,8 +1311,8 @@
       }, 80);
 
       updateWalletDisplay();
+      renderFixtures('EPL');
 
-      // Telegram WebApp Fit & Configuration
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
         tg.ready();
@@ -1259,7 +1334,6 @@
       document.getElementById('prof-user-winnings').innerText = `${totalWinnings.toLocaleString()} ETB`;
     }
 
-    /* JOIN LEAGUE DIRECTLY FROM WALLET */
     function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
       if (walletBalance < entryFee) {
@@ -1268,13 +1342,9 @@
         return;
       }
 
-      // Deduct from wallet balance
       walletBalance -= entryFee;
       updateWalletDisplay();
-
       alert(`🎉 Successfully joined the ${leagueName} League! ${entryFee} ETB has been deducted from your wallet.`);
-      
-      // Navigate to squad builder to set up their team
       setSquadLeague(leagueName);
       navigateTo('squad');
     }
@@ -1317,15 +1387,32 @@
       ]
     };
 
+    /* FIXTURES DATABASE */
+    const fixturesDatabase = {
+      EPL: [
+        { home: "Arsenal", away: "Chelsea", score: "2 - 1", status: "FT", time: "Completed" },
+        { home: "Man City", away: "Liverpool", score: "1 - 1", status: "LIVE 78'", time: "Live" },
+        { home: "Man Utd", away: "Tottenham", score: "0 - 0", status: "18:30", time: "Upcoming" },
+        { home: "Aston Villa", away: "Newcastle", score: "3 - 0", status: "FT", time: "Completed" }
+      ],
+      UCL: [
+        { home: "Real Madrid", away: "Bayern Munich", score: "3 - 2", status: "FT", time: "Completed" },
+        { home: "PSG", away: "Barcelona", score: "2 - 2", status: "LIVE 84'", time: "Live" },
+        { home: "Inter Milan", away: "Man City", score: "0 - 1", status: "22:00", time: "Upcoming" }
+      ]
+    };
+
     /* APP STATE */
     let currentSquadLeague = 'EPL';
     let currentContestLeague = 'EPL';
+    let currentFixtureLeague = 'EPL';
     let currentWithdrawMethod = 'telebirr';
     let isGameweekLocked = false;
     let squadBudget = 100.0;
     let selectedSquad = [];
     let captainId = null;
     let viceCaptainId = null;
+    let activeChip = null;
     
     let selectedPlayerForAction = null;
     let swapFirstPlayer = null;
@@ -1414,6 +1501,50 @@
       });
     }
 
+    /* FIXTURES RENDERER */
+    function setFixtureLeague(league) {
+      currentFixtureLeague = league;
+      document.getElementById('fix-toggle-epl').classList.toggle('active', league === 'EPL');
+      document.getElementById('fix-toggle-ucl').classList.toggle('active', league === 'UCL');
+      renderFixtures(league);
+    }
+
+    function renderFixtures(league) {
+      const container = document.getElementById('fixtures-container');
+      container.innerHTML = '';
+      const list = fixturesDatabase[league] || [];
+
+      list.forEach(f => {
+        const isLive = f.status.includes('LIVE');
+        const card = document.createElement('div');
+        card.className = 'fixture-card';
+        card.innerHTML = `
+          <div class="fixture-meta">
+            <span>${league} • Gameweek Match</span>
+            <span style="color: ${isLive ? '#10B981' : 'var(--color-text-muted)'}; font-weight:bold;">${f.status}</span>
+          </div>
+          <div class="fixture-matchup">
+            <span>${f.home}</span>
+            <div class="fixture-score-box">${f.score}</div>
+            <span>${f.away}</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    /* CHIPS ENGINE */
+    function toggleChip(chipName) {
+      if (activeChip === chipName) {
+        activeChip = null;
+      } else {
+        activeChip = chipName;
+      }
+      document.getElementById('chip-tc').classList.toggle('active', activeChip === 'TC');
+      document.getElementById('chip-bb').classList.toggle('active', activeChip === 'BB');
+      alert(`Chip ${activeChip ? activeChip + ' activated!' : 'deactivated.'}`);
+    }
+
     /* SQUAD ENGINE */
     function setSquadLeague(league) {
       currentSquadLeague = league;
@@ -1487,7 +1618,10 @@
       div.onclick = () => handlePlayerClick(player);
 
       let badge = '';
-      if (player.id === captainId) badge = '<span class="role-badge">C</span>';
+      if (player.id === captainId) {
+        const cLabel = activeChip === 'TC' ? '3C' : 'C';
+        badge = `<span class="role-badge">${cLabel}</span>`;
+      }
       if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
 
       const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
