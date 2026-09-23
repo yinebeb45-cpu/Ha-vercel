@@ -1311,7 +1311,7 @@
     let joinedLeagues = { EPL: false, UCL: false };
     let isGameweekLocked = false;
 
-    /* DYNAMIC DATABASE CACHE & SEPARATE SQUADS (Initialized Empty for Custom Building) */
+    /* DYNAMIC DATABASE CACHE & SEPARATE SQUADS */
     let allPlayersFromSupabase = [];
     let selectedSquadEPL = [];
     let selectedSquadUCL = [];
@@ -1635,7 +1635,6 @@
       const starters = currentSquad.slice(0, 11);
       const bench = currentSquad.slice(11, 15);
 
-      // Render Goalkeepers (Must have at least 1 slot or player)
       for (let i = 0; i < 1; i++) {
         if (starters[i]) {
           gkpRow.appendChild(createPlayerSlot(starters[i]));
@@ -1644,7 +1643,6 @@
         }
       }
 
-      // Render Defenders (Starters slots 1 to 4 -> 4 slots)
       for (let i = 1; i < 5; i++) {
         if (starters[i]) {
           defRow.appendChild(createPlayerSlot(starters[i]));
@@ -1653,7 +1651,6 @@
         }
       }
 
-      // Render Midfielders (Starters slots 5 to 8 -> 4 slots)
       for (let i = 5; i < 9; i++) {
         if (starters[i]) {
           midRow.appendChild(createPlayerSlot(starters[i]));
@@ -1662,7 +1659,6 @@
         }
       }
 
-      // Render Forwards (Starters slots 9 to 10 -> 2 slots)
       for (let i = 9; i < 11; i++) {
         if (starters[i]) {
           fwdRow.appendChild(createPlayerSlot(starters[i]));
@@ -1671,7 +1667,6 @@
         }
       }
 
-      // Render Bench (4 slots)
       for (let i = 0; i < 4; i++) {
         if (bench[i]) {
           benchRow.appendChild(createPlayerSlot(bench[i]));
@@ -1875,7 +1870,6 @@
       const list = document.getElementById('market-list');
       list.innerHTML = '';
 
-      // Strict filtering: Only display players matching the active league (EPL vs UCL)
       const pool = allPlayersFromSupabase.filter(p => p.leagueType === currentSquadLeague);
       const filtered = pos === 'ALL' ? pool : pool.filter(p => p.pos === pos);
 
@@ -1927,7 +1921,6 @@
         return;
       }
 
-      // Enforce Goalkeeper rule (Max 2 GKP total)
       if (player.pos === 'GKP') {
         const gkpCount = currentSquad.filter(p => p.pos === 'GKP').length;
         if (gkpCount >= 2) {
@@ -2186,3 +2179,4 @@
   </script>
 </body>
 </html>
+
