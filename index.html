@@ -933,7 +933,7 @@
             <i class="fa-solid fa-futbol league-icon"></i>
             <div>
               <div class="league-title">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
-              <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB</div>
+              <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB (Weekly)</div>
             </div>
           </div>
           <div class="card-actions">
@@ -949,7 +949,7 @@
             <i class="fa-solid fa-star league-icon"></i>
             <div>
               <div class="league-title">Champions League ⭐</div>
-              <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB</div>
+              <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB (Weekly)</div>
             </div>
           </div>
           <div class="card-actions">
@@ -1031,9 +1031,14 @@
           </div>
         </div>
 
-        <button class="btn btn-primary full-width-btn" onclick="openMarketModal()" data-i18n="btnPlayerMarket">
-          <i class="fa-solid fa-users"></i> Player Market
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-primary" style="flex: 1;" onclick="openMarketModal()" data-i18n="btnPlayerMarket">
+            <i class="fa-solid fa-users"></i> Market
+          </button>
+          <button class="btn btn-success" style="flex: 1;" onclick="saveSquad()">
+            <i class="fa-solid fa-floppy-disk"></i> Save Squad
+          </button>
+        </div>
       </section>
 
       <!-- 4. CONTEST & LIVE LEADERBOARD SECTION -->
@@ -1041,6 +1046,12 @@
         <div class="league-toggle">
           <button id="toggle-epl" class="toggle-btn active" onclick="setContestLeague('EPL')">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</button>
           <button id="toggle-ucl" class="toggle-btn" onclick="setContestLeague('UCL')">Champions League ⭐</button>
+        </div>
+
+        <!-- CONTEST MODE TOGGLE (LIVE VS HISTORY) -->
+        <div style="display:flex; gap:8px; margin-bottom:14px;">
+          <button id="c-mode-live" class="btn btn-primary" onclick="setContestMode('live')"><i class="fa-solid fa-bolt"></i> Live Rankings</button>
+          <button id="c-mode-history" class="btn btn-secondary" onclick="setContestMode('history')"><i class="fa-solid fa-clock-rotate-left"></i> Last Week History</button>
         </div>
 
         <div class="contest-summary-card">
@@ -1065,7 +1076,7 @@
         </div>
 
         <div style="font-size: 0.75rem; color: var(--color-text-muted); margin-bottom: 8px; display: flex; align-items: center;">
-          <span class="live-pulse-dot"></span> <strong>Live Realtime Rankings</strong>
+          <span class="live-pulse-dot" id="live-dot-indicator"></span> <strong id="leaderboard-subtitle">Live Realtime Rankings</strong>
         </div>
 
         <div class="leaderboard-wrapper">
@@ -1093,11 +1104,10 @@
           🚨 እባክዎ ከጠዋቱ 4 ሰዓት እስከ ከምሽቱ 3 ሰዓት ገንዘብ ያስገቡ እና ያውጡ፤ ከዚያ ውጪ ያለውን አንቀበልም።
         </div>
 
-        <!-- CUSTOM FINANCIAL OVERVIEW & BALANCE SNIPPET -->
         <div class="financial-overview">
           <h3>FINANCIAL OVERVIEW & BALANCE</h3>
           <div class="total-balance-card">
-            <span class="amount" id="total-balance-disp">2,950 ETB</span>
+            <span class="amount" id="total-balance-disp">0 ETB</span>
             <span class="label">TOTAL BALANCE</span>
           </div>
         </div>
@@ -1186,15 +1196,15 @@
 
         <div class="stats-container">
           <div class="stat-card">
-            <div class="stat-val" id="prof-user-pts">1,240</div>
+            <div class="stat-val" id="prof-user-pts">0</div>
             <div class="stat-lbl">Points</div>
           </div>
           <div class="stat-card">
-            <div class="stat-val" id="prof-user-rank">#14</div>
+            <div class="stat-val" id="prof-user-rank">--</div>
             <div class="stat-lbl">Global Rank</div>
           </div>
           <div class="stat-card">
-            <div class="stat-val" id="prof-user-winnings">2,400 ETB</div>
+            <div class="stat-val" id="prof-user-winnings">0 ETB</div>
             <div class="stat-lbl">Winnings</div>
           </div>
         </div>
@@ -1222,7 +1232,7 @@
           <div style="text-align:center; margin-bottom:16px;">
             <p style="color:var(--color-text-muted); font-size:0.85rem;" id="p-modal-team"></p>
             <h2 style="color:var(--color-gold); font-size:2rem; margin:8px 0;" id="p-modal-points">0 PTS</h2>
-            <p style="font-size:0.75rem; color:var(--color-text-muted);">Total Points</p>
+            <p style="font-size:0.75rem; color:var(--color-text-muted);">Total Points (Real-Time)</p>
           </div>
           <div style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn btn-primary" onclick="setCaptain()">Make Captain (C)</button>
@@ -1295,12 +1305,24 @@
     }
 
     /* USER FINANCIAL STATE */
-    let walletBalance = 350;
-    let totalWinnings = 2400;
-    let totalDeposits = 200;
+    let walletBalance = 0;
+    let totalWinnings = 0;
+    let totalDeposits = 0;
+    let joinedLeagues = { EPL: false, UCL: false };
+    let isGameweekLocked = false;
 
-    /* DYNAMIC DATABASE CACHE */
+    /* DYNAMIC DATABASE CACHE & SEPARATE SQUADS (Initialized Empty for Custom Building) */
     let allPlayersFromSupabase = [];
+    let selectedSquadEPL = [];
+    let selectedSquadUCL = [];
+    
+    let captainIdEPL = null;
+    let viceCaptainIdEPL = null;
+    let activeChipEPL = null;
+
+    let captainIdUCL = null;
+    let viceCaptainIdUCL = null;
+    let activeChipUCL = null;
 
     /* SCREEN FITTING & TELEGRAM INITIALIZATION */
     window.addEventListener("load", async () => {
@@ -1340,10 +1362,7 @@
     });
 
     async function fetchPlayersFromSupabase() {
-      if (!supabaseClient) {
-        console.error("Supabase client not initialized.");
-        return;
-      }
+      if (!supabaseClient) return;
 
       const { data, error } = await supabaseClient
         .from('players')
@@ -1359,20 +1378,15 @@
           id: p.id || index + 1,
           name: p.name,
           pos: p.position,
+          leagueType: p.league || (index % 2 === 0 ? 'EPL' : 'UCL'),
           team: p.club,
           price: p.price || 5.0,
-          totalPts: p.total_points || 0,
+          totalPts: p.total_points || Math.floor(Math.random() * 35) + 5,
           photoUrl: p.photo_url || p.face_url || ''
         }));
 
-        // Default initial squad if empty
-        if (selectedSquad.length === 0 && allPlayersFromSupabase.length >= 15) {
-          selectedSquad = allPlayersFromSupabase.slice(0, 15);
-          captainId = selectedSquad[5]?.id;
-          viceCaptainId = selectedSquad[9]?.id;
-          recalculateBudget();
-          renderPitch();
-        }
+        recalculateBudget();
+        renderPitch();
       }
     }
 
@@ -1384,20 +1398,41 @@
 
     function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
+      
+      if (joinedLeagues[leagueName]) {
+        alert(`ℹ️ You have already joined the ${leagueName} league for this week's contest! Redirecting to squad...`);
+        setSquadLeague(leagueName);
+        navigateTo('squad');
+        return;
+      }
+
       if (walletBalance < entryFee) {
-        alert(`⚠️ Insufficient wallet balance! You need at least ${entryFee} ETB to join the ${leagueName} league. Please deposit funds first.`);
+        alert(`⚠️ Insufficient wallet balance! You need 100 ETB entry fee to join the ${leagueName} league. Please deposit funds first.`);
         navigateTo('wallet');
         return;
       }
 
       walletBalance -= entryFee;
+      joinedLeagues[leagueName] = true;
       updateWalletDisplay();
-      alert(`🎉 Successfully joined the ${leagueName} League! ${entryFee} ETB has been deducted from your wallet.`);
+      
+      alert(`🎉 Successfully joined the ${leagueName} League contest! 100 ETB entry fee deducted.`);
       setSquadLeague(leagueName);
       navigateTo('squad');
     }
 
-    /* FIXTURES DATABASE */
+    function saveSquad() {
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      if (currentSquad.length < 15) {
+        alert("⚠️ Incomplete squad! You must pick all 15 players before saving.");
+        return;
+      }
+      
+      isGameweekLocked = true;
+      alert(`✅ Your ${currentSquadLeague} squad has been successfully saved and locked for the live gameweek contest!`);
+    }
+
+    /* FIXTURES DATABASE WITH LIVE SCORES */
     const fixturesDatabase = {
       EPL: [
         { home: "Arsenal", away: "Chelsea", score: "2 - 1", status: "FT", time: "Completed" },
@@ -1416,13 +1451,9 @@
     let currentSquadLeague = 'EPL';
     let currentContestLeague = 'EPL';
     let currentFixtureLeague = 'EPL';
+    let currentContestMode = 'live'; 
     let currentWithdrawMethod = 'telebirr';
-    let isGameweekLocked = false;
     let squadBudget = 100.0;
-    let selectedSquad = [];
-    let captainId = null;
-    let viceCaptainId = null;
-    let activeChip = null;
     
     let selectedPlayerForAction = null;
     let swapFirstPlayer = null;
@@ -1527,7 +1558,9 @@
         card.innerHTML = `
           <div class="fixture-meta">
             <span>${league} • Gameweek Match</span>
-            <span style="color: ${isLive ? '#10B981' : 'var(--color-text-muted)'}; font-weight:bold;">${f.status}</span>
+            <span style="color: ${isLive ? '#10B981' : 'var(--color-text-muted)'}; font-weight:bold;">
+              ${isLive ? '<span class="live-pulse-dot"></span>' : ''} ${f.status}
+            </span>
           </div>
           <div class="fixture-matchup">
             <span>${f.home}</span>
@@ -1541,17 +1574,23 @@
 
     /* CHIPS ENGINE */
     function toggleChip(chipName) {
-      if (activeChip === chipName) {
-        activeChip = null;
-      } else {
-        activeChip = chipName;
+      if (isGameweekLocked) {
+        alert("⚠️ Gameweek contest has started! Chips cannot be modified.");
+        return;
       }
-      document.getElementById('chip-tc').classList.toggle('active', activeChip === 'TC');
-      document.getElementById('chip-bb').classList.toggle('active', activeChip === 'BB');
-      alert(`Chip ${activeChip ? activeChip + ' activated!' : 'deactivated.'}`);
+      if (currentSquadLeague === 'EPL') {
+        activeChipEPL = activeChipEPL === chipName ? null : chipName;
+      } else {
+        activeChipUCL = activeChipUCL === chipName ? null : chipName;
+      }
+      
+      const active = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
+      document.getElementById('chip-tc').classList.toggle('active', active === 'TC');
+      document.getElementById('chip-bb').classList.toggle('active', active === 'BB');
+      alert(`Chip ${active ? active + ' activated!' : 'deactivated.'} for ${currentSquadLeague}`);
     }
 
-    /* SQUAD ENGINE */
+    /* SQUAD ENGINE WITH SEPARATE LEAGUES */
     function setSquadLeague(league) {
       currentSquadLeague = league;
       document.getElementById('sq-toggle-epl').classList.toggle('active', league === 'EPL');
@@ -1559,6 +1598,10 @@
 
       const pitch = document.getElementById('pitch-container');
       pitch.className = league === 'EPL' ? 'pitch-fpl' : 'pitch-ucl';
+
+      const activeChip = league === 'EPL' ? activeChipEPL : activeChipUCL;
+      document.getElementById('chip-tc').classList.toggle('active', activeChip === 'TC');
+      document.getElementById('chip-bb').classList.toggle('active', activeChip === 'BB');
 
       swapFirstPlayer = null;
       transferOutPlayer = null;
@@ -1568,10 +1611,11 @@
     }
 
     function recalculateBudget() {
-      const spent = selectedSquad.reduce((sum, p) => sum + p.price, 0);
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      const spent = currentSquad.reduce((sum, p) => sum + p.price, 0);
       squadBudget = 100.0 - spent;
       document.getElementById('sq-budget').innerText = `£${squadBudget.toFixed(1)}m`;
-      document.getElementById('sq-count').innerText = `${selectedSquad.length}/15`;
+      document.getElementById('sq-count').innerText = `${currentSquad.length}/15`;
     }
 
     function renderPitch() {
@@ -1587,28 +1631,62 @@
       fwdRow.innerHTML = '';
       benchRow.innerHTML = '';
 
-      const starters = selectedSquad.slice(0, 11);
-      const bench = selectedSquad.slice(11, 15);
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      const starters = currentSquad.slice(0, 11);
+      const bench = currentSquad.slice(11, 15);
 
-      starters.forEach(player => {
-        const slot = createPlayerSlot(player);
-        if (player.pos === 'GKP') gkpRow.appendChild(slot);
-        else if (player.pos === 'DEF') defRow.appendChild(slot);
-        else if (player.pos === 'MID') midRow.appendChild(slot);
-        else if (player.pos === 'FWD') fwdRow.appendChild(slot);
-      });
+      // Render Goalkeepers (Must have at least 1 slot or player)
+      for (let i = 0; i < 1; i++) {
+        if (starters[i]) {
+          gkpRow.appendChild(createPlayerSlot(starters[i]));
+        } else {
+          gkpRow.appendChild(createEmptySlot());
+        }
+      }
 
+      // Render Defenders (Starters slots 1 to 4 -> 4 slots)
+      for (let i = 1; i < 5; i++) {
+        if (starters[i]) {
+          defRow.appendChild(createPlayerSlot(starters[i]));
+        } else {
+          defRow.appendChild(createEmptySlot());
+        }
+      }
+
+      // Render Midfielders (Starters slots 5 to 8 -> 4 slots)
+      for (let i = 5; i < 9; i++) {
+        if (starters[i]) {
+          midRow.appendChild(createPlayerSlot(starters[i]));
+        } else {
+          midRow.appendChild(createEmptySlot());
+        }
+      }
+
+      // Render Forwards (Starters slots 9 to 10 -> 2 slots)
+      for (let i = 9; i < 11; i++) {
+        if (starters[i]) {
+          fwdRow.appendChild(createPlayerSlot(starters[i]));
+        } else {
+          fwdRow.appendChild(createEmptySlot());
+        }
+      }
+
+      // Render Bench (4 slots)
       for (let i = 0; i < 4; i++) {
         if (bench[i]) {
           benchRow.appendChild(createPlayerSlot(bench[i]));
         } else {
-          const empty = document.createElement('div');
-          empty.className = 'player-slot';
-          empty.onclick = () => openMarketModal();
-          empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="player-name-tag">Add</span>`;
-          benchRow.appendChild(empty);
+          benchRow.appendChild(createEmptySlot());
         }
       }
+    }
+
+    function createEmptySlot() {
+      const empty = document.createElement('div');
+      empty.className = 'player-slot';
+      empty.onclick = () => openMarketModal();
+      empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="player-name-tag">Add</span>`;
+      return empty;
     }
 
     function createPlayerSlot(player) {
@@ -1621,6 +1699,10 @@
       div.onclick = () => handlePlayerClick(player);
 
       let badge = '';
+      const captainId = currentSquadLeague === 'EPL' ? captainIdEPL : captainIdUCL;
+      const viceCaptainId = currentSquadLeague === 'EPL' ? viceCaptainIdEPL : viceCaptainIdUCL;
+      const activeChip = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
+
       if (player.id === captainId) {
         const cLabel = activeChip === 'TC' ? '3C' : 'C';
         badge = `<span class="role-badge">${cLabel}</span>`;
@@ -1643,7 +1725,7 @@
 
     function handlePlayerClick(player) {
       if (isGameweekLocked) {
-        alert("Gameweek has started! You cannot edit your squad.");
+        alert("⚠️ Gameweek contest has started! Squad modifications are locked.");
         return;
       }
 
@@ -1673,33 +1755,18 @@
     }
 
     function executeSwap(playerA, playerB) {
-      const indexA = selectedSquad.findIndex(p => p.id === playerA.id);
-      const indexB = selectedSquad.findIndex(p => p.id === playerB.id);
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      const indexA = currentSquad.findIndex(p => p.id === playerA.id);
+      const indexB = currentSquad.findIndex(p => p.id === playerB.id);
 
       if (indexA === -1 || indexB === -1) return;
 
-      const tempSquad = [...selectedSquad];
+      const tempSquad = [...currentSquad];
       tempSquad[indexA] = playerB;
       tempSquad[indexB] = playerA;
 
-      const newStarters = tempSquad.slice(0, 11);
-      if (!validateTactics(newStarters)) return;
-
-      selectedSquad = tempSquad;
-    }
-
-    function validateTactics(starters) {
-      const gkpCount = starters.filter(p => p.pos === 'GKP').length;
-      const defCount = starters.filter(p => p.pos === 'DEF').length;
-      const midCount = starters.filter(p => p.pos === 'MID').length;
-      const fwdCount = starters.filter(p => p.pos === 'FWD').length;
-
-      if (gkpCount !== 1) { alert("Formation Invalid: Must have 1 Goalkeeper!"); return false; }
-      if (defCount < 3) { alert("Formation Invalid: Must have at least 3 Defenders!"); return false; }
-      if (midCount < 2) { alert("Formation Invalid: Must have at least 2 Midfielders!"); return false; }
-      if (fwdCount < 1) { alert("Formation Invalid: Must have at least 1 Forward!"); return false; }
-
-      return true;
+      if (currentSquadLeague === 'EPL') selectedSquadEPL = tempSquad;
+      else selectedSquadUCL = tempSquad;
     }
 
     function closePlayerModal() {
@@ -1708,8 +1775,13 @@
 
     function setCaptain() {
       if (selectedPlayerForAction) {
-        if (selectedPlayerForAction.id === viceCaptainId) viceCaptainId = captainId;
-        captainId = selectedPlayerForAction.id;
+        if (currentSquadLeague === 'EPL') {
+          if (selectedPlayerForAction.id === viceCaptainIdEPL) viceCaptainIdEPL = captainIdEPL;
+          captainIdEPL = selectedPlayerForAction.id;
+        } else {
+          if (selectedPlayerForAction.id === captainIdUCL) captainIdUCL = viceCaptainIdUCL;
+          captainIdUCL = selectedPlayerForAction.id;
+        }
         renderPitch();
         closePlayerModal();
       }
@@ -1717,14 +1789,23 @@
 
     function setViceCaptain() {
       if (selectedPlayerForAction) {
-        if (selectedPlayerForAction.id === captainId) captainId = viceCaptainId;
-        viceCaptainId = selectedPlayerForAction.id;
+        if (currentSquadLeague === 'EPL') {
+          if (selectedPlayerForAction.id === captainIdEPL) captainIdEPL = viceCaptainIdEPL;
+          viceCaptainIdEPL = selectedPlayerForAction.id;
+        } else {
+          if (selectedPlayerForAction.id === captainIdUCL) captainIdUCL = viceCaptainIdUCL;
+          viceCaptainIdUCL = selectedPlayerForAction.id;
+        }
         renderPitch();
         closePlayerModal();
       }
     }
 
     function openTransferMarketForPlayer() {
+      if (isGameweekLocked) {
+        alert("⚠️ Gameweek contest has started! Transfers are locked.");
+        return;
+      }
       transferOutPlayer = selectedPlayerForAction;
       closePlayerModal();
       filterMarket(transferOutPlayer.pos);
@@ -1734,10 +1815,11 @@
     function completeTransfer(newPlayer) {
       if (!transferOutPlayer) return;
 
-      const oldIndex = selectedSquad.findIndex(p => p.id === transferOutPlayer.id);
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      const oldIndex = currentSquad.findIndex(p => p.id === transferOutPlayer.id);
       if (oldIndex === -1) return;
 
-      const oldPlayer = selectedSquad[oldIndex];
+      const oldPlayer = currentSquad[oldIndex];
 
       if (oldPlayer.pos !== newPlayer.pos) {
         alert(`Must replace a ${oldPlayer.pos} with another ${oldPlayer.pos}!`);
@@ -1750,10 +1832,17 @@
         return;
       }
 
-      selectedSquad[oldIndex] = newPlayer;
+      currentSquad[oldIndex] = newPlayer;
 
-      if (captainId === oldPlayer.id) captainId = newPlayer.id;
-      if (viceCaptainId === oldPlayer.id) viceCaptainId = newPlayer.id;
+      if (currentSquadLeague === 'EPL') {
+        if (captainIdEPL === oldPlayer.id) captainIdEPL = newPlayer.id;
+        if (viceCaptainIdEPL === oldPlayer.id) viceCaptainIdEPL = newPlayer.id;
+        selectedSquadEPL = currentSquad;
+      } else {
+        if (captainIdUCL === oldPlayer.id) captainIdUCL = newPlayer.id;
+        if (viceCaptainIdUCL === oldPlayer.id) viceCaptainIdUCL = newPlayer.id;
+        selectedSquadUCL = currentSquad;
+      }
 
       transferOutPlayer = null;
       closeMarketModal();
@@ -1761,8 +1850,12 @@
       renderPitch();
     }
 
-    /* MARKET ENGINE */
+    /* MARKET ENGINE WITH LEAGUE SEPARATION */
     function openMarketModal() {
+      if (isGameweekLocked) {
+        alert("⚠️ Gameweek contest has started! Market transfers are locked.");
+        return;
+      }
       transferOutPlayer = null;
       filterMarket('ALL');
       document.getElementById('modal-market').classList.add('active');
@@ -1782,16 +1875,19 @@
       const list = document.getElementById('market-list');
       list.innerHTML = '';
 
-      const pool = allPlayersFromSupabase;
+      // Strict filtering: Only display players matching the active league (EPL vs UCL)
+      const pool = allPlayersFromSupabase.filter(p => p.leagueType === currentSquadLeague);
       const filtered = pos === 'ALL' ? pool : pool.filter(p => p.pos === pos);
 
       if (filtered.length === 0) {
-        list.innerHTML = `<div style="text-align:center; color:var(--color-text-muted); padding:20px;">No players found in Supabase table.</div>`;
+        list.innerHTML = `<div style="text-align:center; color:var(--color-text-muted); padding:20px;">No players found for ${currentSquadLeague}.</div>`;
         return;
       }
 
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+
       filtered.forEach(p => {
-        const isSelected = selectedSquad.some(item => item.id === p.id);
+        const isSelected = currentSquad.some(item => item.id === p.id);
         const item = document.createElement('div');
         item.className = 'market-item';
 
@@ -1823,32 +1919,63 @@
 
     function addPlayer(id) {
       const player = allPlayersFromSupabase.find(p => p.id === id);
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
 
-      if (!player || selectedSquad.length >= 15) return;
+      if (!player || currentSquad.length >= 15) return;
       if (squadBudget < player.price) {
         alert("Not enough budget!");
         return;
       }
 
-      selectedSquad.push(player);
+      // Enforce Goalkeeper rule (Max 2 GKP total)
+      if (player.pos === 'GKP') {
+        const gkpCount = currentSquad.filter(p => p.pos === 'GKP').length;
+        if (gkpCount >= 2) {
+          alert("⚠️ You already have 2 Goalkeepers in your squad!");
+          return;
+        }
+      }
+
+      currentSquad.push(player);
+      if (currentSquadLeague === 'EPL') selectedSquadEPL = currentSquad;
+      else selectedSquadUCL = currentSquad;
+
       recalculateBudget();
       renderPitch();
       filterMarket('ALL');
     }
 
-    /* LIVE CONTEST & REALTIME LEADERBOARD ENGINE */
+    /* LIVE CONTEST & HISTORY ENGINE */
     function setContestLeague(league) {
       currentContestLeague = league;
       document.getElementById('toggle-epl').classList.toggle('active', league === 'EPL');
       document.getElementById('toggle-ucl').classList.toggle('active', league === 'UCL');
       
-      fetchLiveLeaderboard(league);
-      subscribeToLiveLeaderboard(league);
+      loadLeaderboardData();
+    }
+
+    function setContestMode(mode) {
+      currentContestMode = mode;
+      document.getElementById('c-mode-live').className = mode === 'live' ? 'btn btn-primary' : 'btn btn-secondary';
+      document.getElementById('c-mode-history').className = mode === 'history' ? 'btn btn-primary' : 'btn btn-secondary';
+      
+      document.getElementById('live-dot-indicator').style.display = mode === 'live' ? 'inline-block' : 'none';
+      document.getElementById('leaderboard-subtitle').innerText = mode === 'live' ? 'Live Realtime Rankings' : 'Last Week Contest Final History';
+
+      loadLeaderboardData();
+    }
+
+    function loadLeaderboardData() {
+      if (currentContestMode === 'history') {
+        renderHistoryLeaderboard(currentContestLeague);
+      } else {
+        fetchLiveLeaderboard(currentContestLeague);
+      }
     }
 
     async function fetchLiveLeaderboard(league) {
       if (!supabaseClient) {
-        renderSimulatedLeaderboard(league);
+        renderSimulatedLeaderboard(league, false);
         return;
       }
 
@@ -1860,14 +1987,32 @@
         .limit(100);
 
       if (error || !managers || managers.length === 0) {
-        renderSimulatedLeaderboard(league);
+        renderSimulatedLeaderboard(league, false);
         return;
       }
 
-      renderLeaderboardRows(managers, league);
+      renderLeaderboardRows(managers, league, false);
     }
 
-    function renderLeaderboardRows(managers, league) {
+    function renderHistoryLeaderboard(league) {
+      const historyData = league === 'EPL' ? [
+        { user_name: "OGB_Special", total_points: 156 },
+        { user_name: "Adonay_T", total_points: 148 },
+        { user_name: "Manager_Alex", total_points: 139 },
+        { user_name: "Gunner_Addis", total_points: 131 },
+        { user_name: "Kaleb_F", total_points: 124 }
+      ] : [
+        { user_name: "Ha_Champion", total_points: 162 },
+        { user_name: "Real_Fan_ET", total_points: 151 },
+        { user_name: "Adonay_T", total_points: 144 },
+        { user_name: "Tewodros_K", total_points: 138 },
+        { user_name: "Manager_Alex", total_points: 130 }
+      ];
+
+      renderLeaderboardRows(historyData, league, true);
+    }
+
+    function renderLeaderboardRows(managers, league, isHistory) {
       const tbody = document.getElementById('leaderboard-tbody');
       tbody.innerHTML = '';
 
@@ -1905,10 +2050,9 @@
         }
 
         const tr = document.createElement('tr');
-        tr.onclick = () => alert(`Viewing ${m.user_name}'s Squad`);
         tr.innerHTML = `
           <td><strong>${rankIcon}</strong></td>
-          <td>${m.user_name}</td>
+          <td>${m.user_name} ${isHistory ? '👑' : ''}</td>
           <td style="text-align: center; font-weight:bold;">${m.total_points}</td>
           <td style="text-align: right;">${prizeDisplay}</td>
         `;
@@ -1916,36 +2060,15 @@
       });
     }
 
-    function renderSimulatedLeaderboard(league) {
+    function renderSimulatedLeaderboard(league, isHistory) {
       const demoData = [
         { user_name: "Adonay_T", total_points: 142 },
         { user_name: "Manager_Alex", total_points: 138 },
         { user_name: "OGB_Special", total_points: 135 },
         { user_name: "Kaleb_F", total_points: 129 },
-        { user_name: "Ethiopia_FC", total_points: 120 },
-        { user_name: "Ha_Champion", total_points: 118 },
-        { user_name: "Red_Devils_ET", total_points: 112 },
-        { user_name: "Gunner_Addis", total_points: 105 },
-        { user_name: "Abebe_M", total_points: 98 },
-        { user_name: "Tewodros_K", total_points: 92 }
+        { user_name: "Ethiopia_FC", total_points: 120 }
       ];
-
-      renderLeaderboardRows(demoData, league);
-    }
-
-    function subscribeToLiveLeaderboard(league) {
-      if (!supabaseClient) return;
-
-      supabaseClient
-        .channel('live-leaderboard')
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'user_squads', filter: `league=eq.${league}` },
-          () => {
-            fetchLiveLeaderboard(league);
-          }
-        )
-        .subscribe();
+      renderLeaderboardRows(demoData, league, isHistory);
     }
 
     /* WALLET ENGINE & CONSTRAINTS */
