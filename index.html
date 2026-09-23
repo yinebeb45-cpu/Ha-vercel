@@ -1705,9 +1705,8 @@
       if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
 
       const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
-      const avatarHTML = player.photoUrl 
-        ? `<img src="${player.photoUrl}" alt="${player.name}" onerror="this.style.display='none'" />` 
-        : `<i class="fa-solid fa-shirt"></i>`;
+    const avatarHTML = player.photo_url ? `<img src="${player.photo_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}" onerror="this.style.display='none'" />` : `<i class="fa-solid fa-shirt"></i>`;
+
 
       div.innerHTML = `
         ${badge}
