@@ -1005,7 +1005,27 @@
             <span class="chip-label" data-i18n="labelPlayers">Squad:</span>
             <span class="chip-value" id="sq-count">0/15</span>
           </div>
+          <div class="squad-info-chip">
+            <span class="chip-label">Formation:</span>
+            <span class="chip-value" id="sq-formation">4-3-3</span>
+          </div>
         </div>
+
+        <!-- FORMATION SELECTOR -->
+        <div class="formation-bar" style="display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
+          <button class="formation-btn active" data-f="4-3-3" onclick="setFormation('4-3-3')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">4-3-3</button>
+          <button class="formation-btn" data-f="3-4-3" onclick="setFormation('3-4-3')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">3-4-3</button>
+          <button class="formation-btn" data-f="3-5-2" onclick="setFormation('3-5-2')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">3-5-2</button>
+          <button class="formation-btn" data-f="4-4-2" onclick="setFormation('4-4-2')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">4-4-2</button>
+          <button class="formation-btn" data-f="4-5-1" onclick="setFormation('4-5-1')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">4-5-1</button>
+          <button class="formation-btn" data-f="5-3-2" onclick="setFormation('5-3-2')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">5-3-2</button>
+          <button class="formation-btn" data-f="5-4-1" onclick="setFormation('5-4-1')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">5-4-1</button>
+          <button class="formation-btn" data-f="3-2-4-1" onclick="setFormation('3-2-4-1')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">3-2-4-1</button>
+          <button class="formation-btn" data-f="2-3-5" onclick="setFormation('2-3-5')" style="flex-shrink:0; background:var(--color-brown-card); border:1px solid var(--color-brown-border); color:var(--color-text-muted); padding:8px 12px; border-radius:8px; font-size:0.72rem; font-weight:800; cursor:pointer;">2-3-5</button>
+        </div>
+        <style>
+          .formation-btn.active { border-color: var(--color-gold) !important; color: var(--color-gold) !important; background: rgba(255,183,3,0.12) !important; }
+        </style>
 
         <!-- CHIPS BOOSTS -->
         <div class="chips-bar">
@@ -1438,12 +1458,16 @@
         { home: "Arsenal", away: "Chelsea", score: "2 - 1", status: "FT", time: "Completed" },
         { home: "Man City", away: "Liverpool", score: "1 - 1", status: "LIVE 78'", time: "Live" },
         { home: "Man Utd", away: "Tottenham", score: "0 - 0", status: "18:30", time: "Upcoming" },
-        { home: "Aston Villa", away: "Newcastle", score: "3 - 0", status: "FT", time: "Completed" }
+        { home: "Aston Villa", away: "Newcastle", score: "3 - 0", status: "FT", time: "Completed" },
+        { home: "Brighton", away: "West Ham", score: "1 - 0", status: "LIVE 54'", time: "Live" },
+        { home: "Newcastle", away: "Everton", score: "2 - 2", status: "LIVE 67'", time: "Live" }
       ],
       UCL: [
         { home: "Real Madrid", away: "Bayern Munich", score: "3 - 2", status: "FT", time: "Completed" },
         { home: "PSG", away: "Barcelona", score: "2 - 2", status: "LIVE 84'", time: "Live" },
-        { home: "Inter Milan", away: "Man City", score: "0 - 1", status: "22:00", time: "Upcoming" }
+        { home: "Inter Milan", away: "Man City", score: "0 - 1", status: "22:00", time: "Upcoming" },
+        { home: "Liverpool", away: "Atletico Madrid", score: "1 - 0", status: "LIVE 67'", time: "Live" },
+        { home: "Bayern Munich", away: "Arsenal", score: "2 - 1", status: "LIVE 41'", time: "Live" }
       ]
     };
 
@@ -1454,10 +1478,34 @@
     let currentContestMode = 'live'; 
     let currentWithdrawMethod = 'telebirr';
     let squadBudget = 100.0;
+    let currentFormation = '4-3-3';
     
     let selectedPlayerForAction = null;
     let swapFirstPlayer = null;
     let transferOutPlayer = null;
+
+    /* TACTICAL FORMATIONS - DEF / MID / FWD counts for starting XI */
+    const FORMATIONS = {
+      '4-3-3':   { def: 4, mid: 3, fwd: 3 },
+      '3-4-3':   { def: 3, mid: 4, fwd: 3 },
+      '3-5-2':   { def: 3, mid: 5, fwd: 2 },
+      '4-4-2':   { def: 4, mid: 4, fwd: 2 },
+      '4-5-1':   { def: 4, mid: 5, fwd: 1 },
+      '5-3-2':   { def: 5, mid: 3, fwd: 2 },
+      '5-4-1':   { def: 5, mid: 4, fwd: 1 },
+      '3-2-4-1': { def: 3, mid: 2, fwd: 5 },
+      '2-3-5':   { def: 2, mid: 3, fwd: 5 }
+    };
+
+    function setFormation(f) {
+      currentFormation = f;
+      document.querySelectorAll('.formation-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-f') === f);
+      });
+      const label = document.getElementById('sq-formation');
+      if (label) label.innerText = f;
+      renderPitch();
+    }
 
     const i18n = {
       en: {
@@ -1632,47 +1680,48 @@
       benchRow.innerHTML = '';
 
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
-      const starters = currentSquad.slice(0, 11);
-      const bench = currentSquad.slice(11, 15);
+      const form = FORMATIONS[currentFormation] || FORMATIONS['4-3-3'];
 
+      // Separate players by position
+      const gkps = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'GKP' || (p.pos || '').toUpperCase() === 'GK');
+      const defs = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'DEF');
+      const mids = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'MID');
+      const fwds = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'FWD');
+
+      // Starters according to selected formation
+      const starterGKP = gkps.slice(0, 1);
+      const starterDEF = defs.slice(0, form.def);
+      const starterMID = mids.slice(0, form.mid);
+      const starterFWD = fwds.slice(0, form.fwd);
+
+      // Remaining players go to bench
+      const usedIds = new Set([...starterGKP, ...starterDEF, ...starterMID, ...starterFWD].map(p => p.id));
+      const bench = currentSquad.filter(p => !usedIds.has(p.id)).slice(0, 4);
+
+      // Render GKP (always 1 on pitch)
       for (let i = 0; i < 1; i++) {
-        if (starters[i]) {
-          gkpRow.appendChild(createPlayerSlot(starters[i]));
-        } else {
-          gkpRow.appendChild(createEmptySlot());
-        }
+        if (starterGKP[i]) gkpRow.appendChild(createPlayerSlot(starterGKP[i]));
+        else gkpRow.appendChild(createEmptySlot());
       }
-
-      for (let i = 1; i < 5; i++) {
-        if (starters[i]) {
-          defRow.appendChild(createPlayerSlot(starters[i]));
-        } else {
-          defRow.appendChild(createEmptySlot());
-        }
+      // DEF according to formation
+      for (let i = 0; i < form.def; i++) {
+        if (starterDEF[i]) defRow.appendChild(createPlayerSlot(starterDEF[i]));
+        else defRow.appendChild(createEmptySlot());
       }
-
-      for (let i = 5; i < 9; i++) {
-        if (starters[i]) {
-          midRow.appendChild(createPlayerSlot(starters[i]));
-        } else {
-          midRow.appendChild(createEmptySlot());
-        }
+      // MID according to formation
+      for (let i = 0; i < form.mid; i++) {
+        if (starterMID[i]) midRow.appendChild(createPlayerSlot(starterMID[i]));
+        else midRow.appendChild(createEmptySlot());
       }
-
-      for (let i = 9; i < 11; i++) {
-        if (starters[i]) {
-          fwdRow.appendChild(createPlayerSlot(starters[i]));
-        } else {
-          fwdRow.appendChild(createEmptySlot());
-        }
+      // FWD according to formation
+      for (let i = 0; i < form.fwd; i++) {
+        if (starterFWD[i]) fwdRow.appendChild(createPlayerSlot(starterFWD[i]));
+        else fwdRow.appendChild(createEmptySlot());
       }
-
+      // Bench (4 slots)
       for (let i = 0; i < 4; i++) {
-        if (bench[i]) {
-          benchRow.appendChild(createPlayerSlot(bench[i]));
-        } else {
-          benchRow.appendChild(createEmptySlot());
-        }
+        if (bench[i]) benchRow.appendChild(createPlayerSlot(bench[i]));
+        else benchRow.appendChild(createEmptySlot());
       }
     }
 
@@ -1705,14 +1754,17 @@
       if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
 
       const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
-    const avatarHTML = player.photo_url ? `<img src="${player.photo_url}" class="w-10 h-10 rounded-full object-cover" alt="${player.name}" onerror="this.style.display='none'" />` : `<i class="fa-solid fa-shirt"></i>`;
+      // REAL FACES FIXED - use photoUrl (mapped from Supabase)
+      const avatarHTML = player.photoUrl 
+        ? `<img src="${player.photoUrl}" alt="${player.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-shirt\'></i>';" />` 
+        : `<i class="fa-solid fa-shirt"></i>`;
 
-
+      const currency = currentSquadLeague === 'UCL' ? '€' : '£';
       div.innerHTML = `
         ${badge}
         <div class="jersey-icon ${uclClass}">${avatarHTML}</div>
         <span class="player-name-tag">${player.name}</span>
-        <span class="player-price-tag">£${player.price}m</span>
+        <span class="player-price-tag">${currency}${player.price}m</span>
       `;
       return div;
     }
