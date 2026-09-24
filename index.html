@@ -1394,17 +1394,28 @@
       }
 
       if (data && data.length > 0) {
-        allPlayersFromSupabase = data.map((p, index) => ({
-          id: p.id || index + 1,
-          name: p.name,
-          pos: p.position,
-          leagueType: p.league || (index % 2 === 0 ? 'EPL' : 'UCL'),
-          team: p.club,
-          price: p.price || 5.0,
-          totalPts: p.total_points || Math.floor(Math.random() * 35) + 5,
-          photoUrl: p.photo_url || p.face_url || ''
-        }));
+        allPlayersFromSupabase = data.map((p, index) => {
+          // Normalize position: GK → GKP
+          let pos = (p.position || p.pos || 'MID').toUpperCase().trim();
+          if (pos === 'GK') pos = 'GKP';
 
+          // Normalize league: "epl" / "EPL" / "Premier League" → "EPL"
+          let leagueRaw = (p.league || '').toString().toUpperCase().trim();
+          let leagueType = (leagueRaw === 'UCL' || leagueRaw.includes('CHAMPIONS')) ? 'UCL' : 'EPL';
+
+          return {
+            id: p.id || index + 1,
+            name: p.name || 'Unknown',
+            pos: pos,
+            leagueType: leagueType,
+            team: p.club || p.team || '',
+            price: Number(p.price_m || p.price || 5.0),
+            totalPts: p.total_points || p.current_points || Math.floor(Math.random() * 35) + 5,
+            photoUrl: p.photo_url || p.face_url || ''
+          };
+        });
+
+        console.log('Loaded players:', allPlayersFromSupabase.length, 'EPL:', allPlayersFromSupabase.filter(x => x.leagueType === 'EPL').length, 'UCL:', allPlayersFromSupabase.filter(x => x.leagueType === 'UCL').length);
         recalculateBudget();
         renderPitch();
       }
@@ -2230,4 +2241,3 @@
   </script>
 </body>
 </html>
-
