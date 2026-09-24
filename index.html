@@ -937,7 +937,7 @@
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn btn-success" onclick="joinLeagueFromWallet('EPL')"><i class="fa-solid fa-wallet"></i> Join (100 ETB)</button>
+            <button class="btn btn-success" id="btn-join-epl" onclick="joinLeagueFromWallet('EPL')"><i class="fa-solid fa-wallet"></i> Pay 100 ETB</button>
             <button class="btn btn-primary" onclick="setSquadLeague('EPL'); navigateTo('squad')" data-i18n="btnBuildSquad">Squad</button>
             <button class="btn btn-secondary" onclick="setContestLeague('EPL'); navigateTo('contest')" data-i18n="btnLeaderboard">Board</button>
           </div>
@@ -953,7 +953,7 @@
             </div>
           </div>
           <div class="card-actions">
-            <button class="btn btn-success" onclick="joinLeagueFromWallet('UCL')"><i class="fa-solid fa-wallet"></i> Join (100 ETB)</button>
+            <button class="btn btn-success" id="btn-join-ucl" onclick="joinLeagueFromWallet('UCL')"><i class="fa-solid fa-wallet"></i> Pay 100 ETB</button>
             <button class="btn btn-primary" onclick="setSquadLeague('UCL'); navigateTo('squad')" data-i18n="btnBuildSquad">Squad</button>
             <button class="btn btn-secondary" onclick="setContestLeague('UCL'); navigateTo('contest')" data-i18n="btnLeaderboard">Board</button>
           </div>
@@ -1049,6 +1049,13 @@
             <div class="bench-title" data-i18n="labelBench">Bench</div>
             <div class="pitch-row" id="row-bench"></div>
           </div>
+        </div>
+
+        <!-- CONTEST ENTRY (Pay to compete for prizes) -->
+        <div id="squad-contest-bar" style="margin-bottom:12px;">
+          <button class="btn btn-success" id="btn-squad-pay" onclick="joinLeagueFromWallet(currentSquadLeague)" style="width:100%;">
+            <i class="fa-solid fa-wallet"></i> Pay 100 ETB to Enter Contest
+          </button>
         </div>
 
         <div style="display: flex; gap: 8px;">
@@ -1276,6 +1283,11 @@
           <button style="background:none; border:none; color:white; font-size:1.5rem;" onclick="closeMarketModal()">&times;</button>
         </div>
         <div class="modal-body">
+          <div style="margin-bottom:12px;">
+            <input type="text" id="market-search" placeholder="Search player name..." 
+              oninput="filterMarket(currentMarketPos)" 
+              style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--color-brown-border); background:var(--color-brown-dark); color:white; font-size:0.9rem;" />
+          </div>
           <div class="market-filter">
             <button onclick="filterMarket('ALL')" class="filter-btn active" id="f-ALL">ALL</button>
             <button onclick="filterMarket('GKP')" class="filter-btn" id="f-GKP">GKP</button>
@@ -1363,6 +1375,7 @@
       }, 80);
 
       updateWalletDisplay();
+      updateJoinButtons();
       renderFixtures('EPL');
       await fetchPlayersFromSupabase();
 
@@ -1444,18 +1457,62 @@
       document.getElementById('prof-user-winnings').innerText = `${totalWinnings.toLocaleString()} ETB`;
     }
 
+    function updateJoinButtons() {
+      const eplBtn = document.getElementById('btn-join-epl');
+      const uclBtn = document.getElementById('btn-join-ucl');
+      if (eplBtn) {
+        if (joinedLeagues.EPL) {
+          eplBtn.innerHTML = '<i class="fa-solid fa-check"></i> Joined';
+          eplBtn.style.opacity = '0.7';
+          eplBtn.disabled = true;
+        } else {
+          eplBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> Pay 100 ETB';
+          eplBtn.style.opacity = '1';
+          eplBtn.disabled = false;
+        }
+      }
+      if (uclBtn) {
+        if (joinedLeagues.UCL) {
+          uclBtn.innerHTML = '<i class="fa-solid fa-check"></i> Joined';
+          uclBtn.style.opacity = '0.7';
+          uclBtn.disabled = true;
+        } else {
+          uclBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> Pay 100 ETB';
+          uclBtn.style.opacity = '1';
+          uclBtn.disabled = false;
+        }
+      }
+      // Squad page pay button - HIDE completely after payment
+      const squadPayBtn = document.getElementById('btn-squad-pay');
+      const squadPayBar = document.getElementById('squad-contest-bar');
+      if (squadPayBtn && squadPayBar) {
+        const league = currentSquadLeague;
+        if (joinedLeagues[league]) {
+          squadPayBar.style.display = 'none';  // disappear after pay
+        } else {
+          squadPayBar.style.display = 'block';
+          squadPayBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> Pay 100 ETB to Enter ' + league + ' Contest';
+          squadPayBtn.style.opacity = '1';
+          squadPayBtn.disabled = false;
+          squadPayBtn.className = 'btn btn-success';
+          squadPayBtn.style.width = '100%';
+        }
+      }
+    }
+
     function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
       
+      // Already paid for this league contest
       if (joinedLeagues[leagueName]) {
-        alert(`ℹ️ You have already joined the ${leagueName} league for this week's contest! Redirecting to squad...`);
+        alert('ℹ️ You have already paid and joined the ' + leagueName + ' contest this week!');
         setSquadLeague(leagueName);
         navigateTo('squad');
         return;
       }
 
       if (walletBalance < entryFee) {
-        alert(`⚠️ Insufficient wallet balance! You need 100 ETB entry fee to join the ${leagueName} league. Please deposit funds first.`);
+        alert('⚠️ Insufficient wallet balance! You need 100 ETB to enter the ' + leagueName + ' contest. Please deposit first.');
         navigateTo('wallet');
         return;
       }
@@ -1463,8 +1520,9 @@
       walletBalance -= entryFee;
       joinedLeagues[leagueName] = true;
       updateWalletDisplay();
+      updateJoinButtons();
       
-      alert(`🎉 Successfully joined the ${leagueName} League contest! 100 ETB entry fee deducted.`);
+      alert('🎉 Successfully entered the ' + leagueName + ' contest! 100 ETB deducted.\n\nYou can now compete for prizes. Squad building is free for everyone.');
       setSquadLeague(leagueName);
       navigateTo('squad');
     }
@@ -1511,6 +1569,7 @@
     let selectedPlayerForAction = null;
     let swapFirstPlayer = null;
     let transferOutPlayer = null;
+    let currentMarketPos = 'ALL';
 
     /* TACTICAL FORMATIONS - DEF / MID / FWD counts for starting XI */
     const FORMATIONS = {
@@ -1668,6 +1727,7 @@
 
     /* SQUAD ENGINE WITH SEPARATE LEAGUES */
     function setSquadLeague(league) {
+      // Squad building is FREE - payment only required to enter the contest
       currentSquadLeague = league;
       document.getElementById('sq-toggle-epl').classList.toggle('active', league === 'EPL');
       document.getElementById('sq-toggle-ucl').classList.toggle('active', league === 'UCL');
@@ -1684,6 +1744,7 @@
 
       recalculateBudget();
       renderPitch();
+      updateJoinButtons();
     }
 
     function recalculateBudget() {
@@ -1926,11 +1987,14 @@
 
     /* MARKET ENGINE WITH LEAGUE SEPARATION */
     function openMarketModal() {
+      // Market is free - anyone can build squad
       if (isGameweekLocked) {
         alert("⚠️ Gameweek contest has started! Market transfers are locked.");
         return;
       }
       transferOutPlayer = null;
+      const searchEl = document.getElementById('market-search');
+      if (searchEl) searchEl.value = '';
       filterMarket('ALL');
       document.getElementById('modal-market').classList.add('active');
     }
@@ -1941,16 +2005,27 @@
     }
 
     function filterMarket(pos) {
+      currentMarketPos = pos || 'ALL';
       ['ALL', 'GKP', 'DEF', 'MID', 'FWD'].forEach(p => {
         const btn = document.getElementById(`f-${p}`);
-        if (btn) btn.classList.toggle('active', p === pos);
+        if (btn) btn.classList.toggle('active', p === currentMarketPos);
       });
 
       const list = document.getElementById('market-list');
       list.innerHTML = '';
 
-      const pool = allPlayersFromSupabase.filter(p => p.leagueType === currentSquadLeague);
-      const filtered = pos === 'ALL' ? pool : pool.filter(p => p.pos === pos);
+      const searchTerm = (document.getElementById('market-search')?.value || '').toLowerCase().trim();
+      let pool = allPlayersFromSupabase.filter(p => p.leagueType === currentSquadLeague);
+      if (currentMarketPos !== 'ALL') {
+        pool = pool.filter(p => p.pos === currentMarketPos);
+      }
+      if (searchTerm) {
+        pool = pool.filter(p => 
+          (p.name || '').toLowerCase().includes(searchTerm) || 
+          (p.team || '').toLowerCase().includes(searchTerm)
+        );
+      }
+      const filtered = pool;
 
       if (filtered.length === 0) {
         const total = allPlayersFromSupabase.length;
@@ -1981,7 +2056,7 @@
 
         item.innerHTML = `
           <div style="display:flex; align-items:center; gap:8px;">
-            ${p.photoUrl ? `<img src="${p.photoUrl}" width="32" height="32" style="border-radius:50%; object-fit:cover;" onerror="this.style.display='none'"/>` : ''}
+            ${p.photoUrl ? `<img src="${p.photoUrl}" width="32" height="32" style="border-radius:50%; object-fit:cover;" onerror="this.onerror=null; this.src=''; this.style.display='none'; this.parentElement.insertAdjacentHTML('afterbegin', '<i class=\'fa-solid fa-shirt\' style=\'font-size:1.2rem; color:var(--color-gold);\'></i>');" />` : '<i class="fa-solid fa-shirt" style="font-size:1.2rem; color:var(--color-gold);"></i>'}
             <div>
               <strong>${p.name}</strong> <small>(${p.pos} - ${p.team})</small>
             </div>
