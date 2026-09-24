@@ -1382,18 +1382,29 @@
     });
 
     async function fetchPlayersFromSupabase() {
-      if (!supabaseClient) return;
-
-      const { data, error } = await supabaseClient
-        .from('players')
-        .select('*');
-
-      if (error) {
-        console.error('Error fetching players:', error.message);
+      const marketList = document.getElementById('market-list');
+      if (!supabaseClient) {
+        console.error('Supabase client not created');
+        if (marketList) marketList.innerHTML = '<div style="text-align:center;color:#EF4444;padding:20px;">Supabase not connected. Check API key.</div>';
         return;
       }
 
-      if (data && data.length > 0) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('players')
+          .select('*');
+
+        if (error) {
+          console.error('Error fetching players:', error.message);
+          if (marketList) marketList.innerHTML = '<div style="text-align:center;color:#EF4444;padding:20px;">Error: ' + error.message + '<br>Check RLS policy on players table.</div>';
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          if (marketList) marketList.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">Players table is empty.</div>';
+          return;
+        }
+
         allPlayersFromSupabase = data.map((p, index) => {
           // Normalize position: GK → GKP
           let pos = (p.position || p.pos || 'MID').toUpperCase().trim();
@@ -1415,9 +1426,15 @@
           };
         });
 
-        console.log('Loaded players:', allPlayersFromSupabase.length, 'EPL:', allPlayersFromSupabase.filter(x => x.leagueType === 'EPL').length, 'UCL:', allPlayersFromSupabase.filter(x => x.leagueType === 'UCL').length);
+        console.log('Loaded players:', allPlayersFromSupabase.length, 
+          'EPL:', allPlayersFromSupabase.filter(x => x.leagueType === 'EPL').length, 
+          'UCL:', allPlayersFromSupabase.filter(x => x.leagueType === 'UCL').length);
+
         recalculateBudget();
         renderPitch();
+      } catch (err) {
+        console.error('Fetch exception:', err);
+        if (marketList) marketList.innerHTML = '<div style="text-align:center;color:#EF4444;padding:20px;">Connection failed: ' + err.message + '</div>';
       }
     }
 
@@ -1936,7 +1953,14 @@
       const filtered = pos === 'ALL' ? pool : pool.filter(p => p.pos === pos);
 
       if (filtered.length === 0) {
-        list.innerHTML = `<div style="text-align:center; color:var(--color-text-muted); padding:20px;">No players found for ${currentSquadLeague}.</div>`;
+        const total = allPlayersFromSupabase.length;
+        const eplCount = allPlayersFromSupabase.filter(p => p.leagueType === 'EPL').length;
+        const uclCount = allPlayersFromSupabase.filter(p => p.leagueType === 'UCL').length;
+        list.innerHTML = `<div style="text-align:center; color:var(--color-text-muted); padding:20px;">
+          No players found for ${currentSquadLeague}.<br><br>
+          <small>Total loaded: ${total} (EPL: ${eplCount}, UCL: ${uclCount})</small><br>
+          <small style="color:#EF4444;">If total is 0 → Supabase fetch failed or RLS blocked.</small>
+        </div>`;
         return;
       }
 
@@ -2241,3 +2265,4 @@
   </script>
 </body>
 </html>
+
