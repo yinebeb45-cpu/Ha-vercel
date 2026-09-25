@@ -1448,6 +1448,7 @@
           document.getElementById('prof-display-name').innerText = currentUserName;
           document.getElementById('prof-user-id').innerText = `ID: ${currentTelegramId}`;
           console.log('✅ Telegram user captured:', currentTelegramId);
+          await loadSavedSquads();
         } else {
           console.warn('⚠️ No Telegram user — running outside Telegram?');
         }
@@ -1582,6 +1583,80 @@
       alert('🎉 Successfully entered the ' + leagueName + ' contest! 100 ETB deducted.\n\nYou can now compete for prizes. Squad building is free for everyone.');
       setSquadLeague(leagueName);
       navigateTo('squad');
+    }
+
+    async function loadSavedSquads() {
+      if (!supabaseClient || !currentTelegramId) return;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('user_squads')
+          .select('*')
+          .eq('telegram_id', currentTelegramId)
+          .eq('gameweek', 1);
+
+        if (error) {
+          console.error('❌ Load squads error:', error);
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          console.log('ℹ️ No saved squads found for this user');
+          return;
+        }
+
+        data.forEach(row => {
+          const league = (row.league || '').toUpperCase();
+          let players = row.players || [];
+          if (typeof players === 'string') {
+            try { players = JSON.parse(players); } catch (e) { players = []; }
+          }
+          if (!Array.isArray(players)) players = [];
+
+          // Enrich with full player objects from cache when possible
+          const enriched = players.map(sp => {
+            const full = allPlayersFromSupabase.find(p => p.id === sp.id);
+            return full || {
+              id: sp.id,
+              name: sp.name || 'Unknown',
+              pos: (sp.pos || 'MID').toUpperCase(),
+              team: sp.team || '',
+              price: Number(sp.price) || 5.0,
+              totalPts: sp.totalPts || 0,
+              photoUrl: sp.photoUrl || '',
+              leagueType: league === 'UCL' ? 'UCL' : 'EPL'
+            };
+          });
+
+          if (league === 'UCL') {
+            selectedSquadUCL = enriched;
+            captainIdUCL = row.captain_id || null;
+            viceCaptainIdUCL = row.vice_captain_id || null;
+            activeChipUCL = row.active_chip || null;
+          } else {
+            selectedSquadEPL = enriched;
+            captainIdEPL = row.captain_id || null;
+            viceCaptainIdEPL = row.vice_captain_id || null;
+            activeChipEPL = row.active_chip || null;
+          }
+
+          if (row.formation) {
+            currentFormation = row.formation;
+          }
+
+          console.log(`✅ Loaded ${league} squad (${enriched.length} players)`);
+        });
+
+        // Apply formation UI + re-render current league pitch
+        if (typeof setFormation === 'function') {
+          setFormation(currentFormation);
+        }
+        recalculateBudget();
+        renderPitch();
+        updateJoinButtons();
+      } catch (e) {
+        console.error('❌ Exception loading squads:', e);
+      }
     }
 
     async function saveSquad() {
