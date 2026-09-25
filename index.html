@@ -1634,8 +1634,7 @@
         players: squadPayload,
         captain_id: captainId,
         vice_captain_id: viceCaptainId,
-        active_chip: activeChip || null,
-        updated_at: new Date().toISOString()
+        active_chip: activeChip || null
       };
 
       console.log('📤 Saving squad:', row);
@@ -1925,8 +1924,13 @@
     function createEmptySlot() {
       const empty = document.createElement('div');
       empty.className = 'player-slot';
-      empty.onclick = () => openMarketModal();
-      empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="player-name-tag">Add</span>`;
+      const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      if (currentSquad.length >= 15) {
+        empty.innerHTML = `<div class="jersey-icon empty-slot" style="opacity:0.4;">+</div><span class="player-name-tag">Full</span>`;
+      } else {
+        empty.onclick = () => openMarketModal();
+        empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="player-name-tag">Add</span>`;
+      }
       return empty;
     }
 
@@ -2180,12 +2184,13 @@
         return;
       }
 
-      if (player.pos === 'GKP') {
-        const gkpCount = currentSquad.filter(p => p.pos === 'GKP').length;
-        if (gkpCount >= 2) {
-          alert("⚠️ You already have 2 Goalkeepers in your squad!");
-          return;
-        }
+      const pos = (player.pos || '').toUpperCase();
+      const maxByPos = { GKP: 2, GK: 2, DEF: 5, MID: 5, FWD: 3 };
+      const maxAllowed = maxByPos[pos] || 5;
+      const posCount = currentSquad.filter(p => (p.pos || '').toUpperCase() === pos || (pos === 'GKP' && (p.pos || '').toUpperCase() === 'GK')).length;
+      if (posCount >= maxAllowed) {
+        alert(`⚠️ You already have the maximum ${maxAllowed} ${pos} players in your squad!`);
+        return;
       }
 
       currentSquad.push(player);
