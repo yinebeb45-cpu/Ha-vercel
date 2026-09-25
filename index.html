@@ -322,12 +322,14 @@
     }
 
     .league-card {
-      background: var(--color-brown-card);
+      background: linear-gradient(rgba(33, 19, 8, 0.88), rgba(33, 19, 8, 0.88)), var(--color-brown-card);
       border: 1px solid var(--color-brown-border);
       border-radius: 16px;
       padding: 16px;
       margin-bottom: 14px;
       box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      background-size: cover;
+      background-position: center;
     }
 
     .league-header {
@@ -338,12 +340,11 @@
     }
 
     .league-icon {
-      color: var(--color-gold);
-      font-size: 1.3rem;
-      background: rgba(255, 183, 3, 0.1);
-      padding: 10px;
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
-      border: 1px solid rgba(255, 183, 3, 0.2);
+      object-fit: cover;
+      border: 1px solid rgba(255, 183, 3, 0.3);
     }
 
     .league-title {
@@ -409,11 +410,24 @@
       font-size: 0.8rem;
       cursor: pointer;
       transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      background-size: cover;
+      background-position: center;
     }
 
     .toggle-btn.active {
       background: linear-gradient(135deg, var(--color-gold), var(--color-gold-light));
       color: var(--color-brown-dark);
+    }
+
+    .toggle-img-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      object-fit: cover;
     }
 
     /* SQUAD BUILDER & PITCH */
@@ -928,9 +942,9 @@
         </div>
 
         <!-- EPL LEAGUE CARD -->
-        <div class="league-card">
+        <div class="league-card" style="background-image: linear-gradient(rgba(33, 19, 8, 0.88), rgba(33, 19, 8, 0.88)), url('1000055243.jpg');">
           <div class="league-header">
-            <i class="fa-solid fa-futbol league-icon"></i>
+            <img src="1000055243.jpg" class="league-icon" alt="Premier League">
             <div>
               <div class="league-title">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
               <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB (Weekly)</div>
@@ -944,9 +958,9 @@
         </div>
 
         <!-- UCL LEAGUE CARD -->
-        <div class="league-card">
+        <div class="league-card" style="background-image: linear-gradient(rgba(33, 19, 8, 0.88), rgba(33, 19, 8, 0.88)), url('1000055247.jpg');">
           <div class="league-header">
-            <i class="fa-solid fa-star league-icon"></i>
+            <img src="1000055247.jpg" class="league-icon" alt="Champions League">
             <div>
               <div class="league-title">Champions League ⭐</div>
               <div style="font-size:0.75rem; color:var(--color-gold); font-weight: bold;">Entry: 100 ETB (Weekly)</div>
@@ -980,8 +994,12 @@
       <!-- 2. FIXTURES & LIVE SCORES SECTION -->
       <section id="sec-fixtures" class="tab-content">
         <div class="league-toggle">
-          <button id="fix-toggle-epl" class="toggle-btn active" onclick="setFixtureLeague('EPL')">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</button>
-          <button id="fix-toggle-ucl" class="toggle-btn" onclick="setFixtureLeague('UCL')">Champions League ⭐</button>
+          <button id="fix-toggle-epl" class="toggle-btn active" onclick="setFixtureLeague('EPL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055243.jpg');">
+            <img src="1000055243.jpg" class="toggle-img-icon" alt="EPL"> Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿
+          </button>
+          <button id="fix-toggle-ucl" class="toggle-btn" onclick="setFixtureLeague('UCL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055247.jpg');">
+            <img src="1000055247.jpg" class="toggle-img-icon" alt="UCL"> Champions League ⭐
+          </button>
         </div>
 
         <div id="fixtures-container">
@@ -992,8 +1010,12 @@
       <!-- 3. SQUAD BUILDER SECTION -->
       <section id="sec-squad" class="tab-content">
         <div class="league-toggle">
-          <button id="sq-toggle-epl" class="toggle-btn active" onclick="setSquadLeague('EPL')">Premier League (100 ETB)</button>
-          <button id="sq-toggle-ucl" class="toggle-btn" onclick="setSquadLeague('UCL')">Champions League (100 ETB)</button>
+          <button id="sq-toggle-epl" class="toggle-btn active" onclick="setSquadLeague('EPL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055243.jpg');">
+            <img src="1000055243.jpg" class="toggle-img-icon" alt="EPL"> Premier League (100 ETB)
+          </button>
+          <button id="sq-toggle-ucl" class="toggle-btn" onclick="setSquadLeague('UCL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055247.jpg');">
+            <img src="1000055247.jpg" class="toggle-img-icon" alt="UCL"> Champions League (100 ETB)
+          </button>
         </div>
 
         <div class="squad-header-bar">
@@ -1071,8 +1093,12 @@
       <!-- 4. CONTEST & LIVE LEADERBOARD SECTION -->
       <section id="sec-contest" class="tab-content">
         <div class="league-toggle">
-          <button id="toggle-epl" class="toggle-btn active" onclick="setContestLeague('EPL')">Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿</button>
-          <button id="toggle-ucl" class="toggle-btn" onclick="setContestLeague('UCL')">Champions League ⭐</button>
+          <button id="toggle-epl" class="toggle-btn active" onclick="setContestLeague('EPL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055243.jpg');">
+            <img src="1000055243.jpg" class="toggle-img-icon" alt="EPL"> Premier League 🏴󠁧󠁢󠁥󠁮󠁧󠁿
+          </button>
+          <button id="toggle-ucl" class="toggle-btn" onclick="setContestLeague('UCL')" style="background-image: linear-gradient(rgba(33, 19, 8, 0.85), rgba(33, 19, 8, 0.85)), url('1000055247.jpg');">
+            <img src="1000055247.jpg" class="toggle-img-icon" alt="UCL"> Champions League ⭐
+          </button>
         </div>
 
         <!-- CONTEST MODE TOGGLE (LIVE VS HISTORY) -->
@@ -1155,9 +1181,12 @@
           </div>
 
           <div class="telebirr-card">
-            <div>
-              <span style="font-size:0.75rem; color:var(--color-text-muted);">Adonay Tigabu</span><br>
-              <strong style="color:var(--color-gold); font-size:1rem;">251931313411</strong>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <img src="1000055249_2.png" alt="Telebirr" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:1px solid var(--color-gold);" />
+              <div>
+                <span style="font-size:0.75rem; color:var(--color-text-muted);">Adonay Tigabu</span><br>
+                <strong style="color:var(--color-gold); font-size:1rem;">251931313411</strong>
+              </div>
             </div>
             <button class="btn btn-secondary" style="padding:8px 14px; flex:none;" onclick="copyPhone('251931313411')">
               <i class="fa-regular fa-copy"></i> Copy
@@ -1184,11 +1213,11 @@
 
           <div class="method-grid">
             <div id="wm-telebirr" class="method-card active" onclick="selectWithdrawMethod('telebirr')">
-              <i class="fa-solid fa-mobile-screen-button" style="color:var(--color-gold); font-size:1.4rem;"></i>
+              <img src="1000055249_2.png" alt="Telebirr" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--color-gold);" />
               <span style="font-size:0.8rem; font-weight:bold;">Telebirr</span>
             </div>
             <div id="wm-cbe" class="method-card" onclick="selectWithdrawMethod('cbe')">
-              <i class="fa-solid fa-building-columns" style="color:var(--color-gold); font-size:1.4rem;"></i>
+              <img src="1000055250_2.jpg" alt="CBE" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:1px solid var(--color-gold);" />
               <span style="font-size:0.8rem; font-weight:bold;">CBE Bank</span>
             </div>
           </div>
@@ -1419,11 +1448,9 @@
         }
 
         allPlayersFromSupabase = data.map((p, index) => {
-          // Normalize position: GK → GKP
           let pos = (p.position || p.pos || 'MID').toUpperCase().trim();
           if (pos === 'GK') pos = 'GKP';
 
-          // Normalize league: "epl" / "EPL" / "Premier League" → "EPL"
           let leagueRaw = (p.league || '').toString().toUpperCase().trim();
           let leagueType = (leagueRaw === 'UCL' || leagueRaw.includes('CHAMPIONS')) ? 'UCL' : 'EPL';
 
@@ -1482,13 +1509,12 @@
           uclBtn.disabled = false;
         }
       }
-      // Squad page pay button - HIDE completely after payment
       const squadPayBtn = document.getElementById('btn-squad-pay');
       const squadPayBar = document.getElementById('squad-contest-bar');
       if (squadPayBtn && squadPayBar) {
         const league = currentSquadLeague;
         if (joinedLeagues[league]) {
-          squadPayBar.style.display = 'none';  // disappear after pay
+          squadPayBar.style.display = 'none';
         } else {
           squadPayBar.style.display = 'block';
           squadPayBtn.innerHTML = '<i class="fa-solid fa-wallet"></i> Pay 100 ETB to Enter ' + league + ' Contest';
@@ -1503,7 +1529,6 @@
     function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
       
-      // Already paid for this league contest
       if (joinedLeagues[leagueName]) {
         alert('ℹ️ You have already paid and joined the ' + leagueName + ' contest this week!');
         setSquadLeague(leagueName);
@@ -1538,7 +1563,6 @@
       alert(`✅ Your ${currentSquadLeague} squad has been successfully saved and locked for the live gameweek contest!`);
     }
 
-    /* FIXTURES DATABASE WITH LIVE SCORES */
     const fixturesDatabase = {
       EPL: [
         { home: "Arsenal", away: "Chelsea", score: "2 - 1", status: "FT", time: "Completed" },
@@ -1557,7 +1581,6 @@
       ]
     };
 
-    /* APP STATE */
     let currentSquadLeague = 'EPL';
     let currentContestLeague = 'EPL';
     let currentFixtureLeague = 'EPL';
@@ -1571,7 +1594,6 @@
     let transferOutPlayer = null;
     let currentMarketPos = 'ALL';
 
-    /* TACTICAL FORMATIONS - DEF / MID / FWD counts for starting XI */
     const FORMATIONS = {
       '4-3-3':   { def: 4, mid: 3, fwd: 3 },
       '3-4-3':   { def: 3, mid: 4, fwd: 3 },
@@ -1673,7 +1695,6 @@
       });
     }
 
-    /* FIXTURES RENDERER */
     function setFixtureLeague(league) {
       currentFixtureLeague = league;
       document.getElementById('fix-toggle-epl').classList.toggle('active', league === 'EPL');
@@ -1707,7 +1728,6 @@
       });
     }
 
-    /* CHIPS ENGINE */
     function toggleChip(chipName) {
       if (isGameweekLocked) {
         alert("⚠️ Gameweek contest has started! Chips cannot be modified.");
@@ -1725,9 +1745,7 @@
       alert(`Chip ${active ? active + ' activated!' : 'deactivated.'} for ${currentSquadLeague}`);
     }
 
-    /* SQUAD ENGINE WITH SEPARATE LEAGUES */
     function setSquadLeague(league) {
-      // Squad building is FREE - payment only required to enter the contest
       currentSquadLeague = league;
       document.getElementById('sq-toggle-epl').classList.toggle('active', league === 'EPL');
       document.getElementById('sq-toggle-ucl').classList.toggle('active', league === 'UCL');
@@ -1771,43 +1789,35 @@
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
       const form = FORMATIONS[currentFormation] || FORMATIONS['4-3-3'];
 
-      // Separate players by position
       const gkps = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'GKP' || (p.pos || '').toUpperCase() === 'GK');
       const defs = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'DEF');
       const mids = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'MID');
       const fwds = currentSquad.filter(p => (p.pos || '').toUpperCase() === 'FWD');
 
-      // Starters according to selected formation
       const starterGKP = gkps.slice(0, 1);
       const starterDEF = defs.slice(0, form.def);
       const starterMID = mids.slice(0, form.mid);
       const starterFWD = fwds.slice(0, form.fwd);
 
-      // Remaining players go to bench
       const usedIds = new Set([...starterGKP, ...starterDEF, ...starterMID, ...starterFWD].map(p => p.id));
       const bench = currentSquad.filter(p => !usedIds.has(p.id)).slice(0, 4);
 
-      // Render GKP (always 1 on pitch)
       for (let i = 0; i < 1; i++) {
         if (starterGKP[i]) gkpRow.appendChild(createPlayerSlot(starterGKP[i]));
         else gkpRow.appendChild(createEmptySlot());
       }
-      // DEF according to formation
       for (let i = 0; i < form.def; i++) {
         if (starterDEF[i]) defRow.appendChild(createPlayerSlot(starterDEF[i]));
         else defRow.appendChild(createEmptySlot());
       }
-      // MID according to formation
       for (let i = 0; i < form.mid; i++) {
         if (starterMID[i]) midRow.appendChild(createPlayerSlot(starterMID[i]));
         else midRow.appendChild(createEmptySlot());
       }
-      // FWD according to formation
       for (let i = 0; i < form.fwd; i++) {
         if (starterFWD[i]) fwdRow.appendChild(createPlayerSlot(starterFWD[i]));
         else fwdRow.appendChild(createEmptySlot());
       }
-      // Bench (4 slots)
       for (let i = 0; i < 4; i++) {
         if (bench[i]) benchRow.appendChild(createPlayerSlot(bench[i]));
         else benchRow.appendChild(createEmptySlot());
@@ -1843,7 +1853,6 @@
       if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
 
       const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
-      // REAL FACES FIXED - use photoUrl (mapped from Supabase)
       const avatarHTML = player.photoUrl 
         ? `<img src="${player.photoUrl}" alt="${player.name}" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-shirt\'></i>';" />` 
         : `<i class="fa-solid fa-shirt"></i>`;
@@ -1985,9 +1994,7 @@
       renderPitch();
     }
 
-    /* MARKET ENGINE WITH LEAGUE SEPARATION */
     function openMarketModal() {
-      // Market is free - anyone can build squad
       if (isGameweekLocked) {
         alert("⚠️ Gameweek contest has started! Market transfers are locked.");
         return;
@@ -2099,7 +2106,6 @@
       filterMarket('ALL');
     }
 
-    /* LIVE CONTEST & HISTORY ENGINE */
     function setContestLeague(league) {
       currentContestLeague = league;
       document.getElementById('toggle-epl').classList.toggle('active', league === 'EPL');
@@ -2225,7 +2231,6 @@
       renderLeaderboardRows(demoData, league, isHistory);
     }
 
-    /* WALLET ENGINE & CONSTRAINTS */
     function switchWalletTab(tab) {
       document.getElementById('w-tab-dep').classList.toggle('active', tab === 'deposit');
       document.getElementById('w-tab-wit').classList.toggle('active', tab === 'withdraw');
@@ -2340,4 +2345,3 @@
   </script>
 </body>
 </html>
-
