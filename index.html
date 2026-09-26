@@ -495,32 +495,190 @@
       background: rgba(255, 183, 3, 0.1);
     }
 
+    /* ========== EPL PITCH — green card slots (FPL style) ========== */
     .pitch-fpl {
-      background: repeating-linear-gradient(0deg, #2E7D32, #2E7D32 40px, #25632A 40px, #25632A 80px);
+      background:
+        linear-gradient(180deg, rgba(46,125,50,0.15) 0%, transparent 30%),
+        repeating-linear-gradient(0deg, #3FA34A 0px, #3FA34A 36px, #369640 36px, #369640 72px);
       border-radius: 16px;
-      padding: 16px 8px;
-      border: 2px solid #388E3C;
+      padding: 18px 10px 14px;
+      border: 2px solid #2E7D32;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 12px;
       margin-bottom: 14px;
+      position: relative;
+      box-shadow: inset 0 0 40px rgba(0,0,0,0.12);
+    }
+    .pitch-fpl .player-slot {
+      width: 58px;
+    }
+    .pitch-fpl .jersey-icon {
+      width: 52px;
+      height: 56px;
+      border-radius: 10px;
+      border: 2px solid rgba(255,255,255,0.35);
+      background: linear-gradient(160deg, #2E9B45 0%, #1B7A32 100%);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+      color: #fff;
+    }
+    .pitch-fpl .jersey-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      border-radius: 8px;
+      background: #1B7A32;
+    }
+    .pitch-fpl .jersey-icon .ph-fallback {
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    .pitch-fpl .empty-slot {
+      border: 2px solid rgba(255,255,255,0.4);
+      background: linear-gradient(160deg, #34A853 0%, #228B3B 100%);
+      color: #fff;
+      font-size: 1.35rem;
+      font-weight: 300;
+    }
+    .pitch-fpl .empty-slot::before {
+      content: none;
+    }
+    .pitch-fpl .player-name-tag {
+      background: #1B7A32;
+      color: #fff;
+      font-size: 0.62rem;
+      font-weight: 800;
+      padding: 3px 4px;
+      border-radius: 5px;
+      margin-top: 3px;
+      border: none;
+      letter-spacing: 0.02em;
+    }
+    .pitch-fpl .player-price-tag {
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin-top: 2px;
+    }
+    .pitch-fpl .role-badge {
+      background: #FFB703;
+      color: #120A04;
+      border: none;
+      top: -2px;
+      right: 2px;
+    }
+    .pitch-fpl .epl-pos-label {
+      display: block;
+      font-size: 0.58rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: 0.04em;
+      margin-top: 2px;
     }
 
+    /* ========== UCL PITCH — shirt silhouette style (PS5 / UCL fantasy) ========== */
     .pitch-ucl {
-      background: radial-gradient(circle at center, #1E293B 0%, #0F172A 100%);
+      background:
+        radial-gradient(ellipse at center, rgba(255,255,255,0.06) 0%, transparent 55%),
+        repeating-linear-gradient(0deg, #2D8F4E 0px, #2D8F4E 38px, #267A43 38px, #267A43 76px);
       border-radius: 16px;
-      padding: 16px 8px;
-      border: 2px solid #3B82F6;
+      padding: 18px 8px 14px;
+      border: 2px solid #1a5c34;
       display: flex;
       flex-direction: column;
       gap: 14px;
       margin-bottom: 14px;
+      position: relative;
+      box-shadow: inset 0 0 50px rgba(0,0,0,0.18);
+    }
+    .pitch-ucl .player-slot {
+      width: 56px;
+    }
+    .pitch-ucl .jersey-icon {
+      width: 44px;
+      height: 48px;
+      border-radius: 6px 6px 10px 10px;
+      border: none;
+      background: #1a2744;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.35);
+      color: #fff;
+      position: relative;
+      /* shirt-like shape */
+      clip-path: polygon(
+        18% 0%, 82% 0%,
+        100% 12%, 100% 100%,
+        0% 100%, 0% 12%
+      );
+    }
+    .pitch-ucl .jersey-icon img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      background: #1a2744;
+    }
+    .pitch-ucl .jersey-icon .ph-fallback {
+      font-size: 1.15rem;
+      color: #94a3b8;
+    }
+    .pitch-ucl .empty-slot {
+      background: #1e2d4a;
+      color: #fff;
+      font-size: 1.4rem;
+      font-weight: 300;
+      border: none;
+    }
+    .pitch-ucl .player-name-tag {
+      background: #152238;
+      color: #fff;
+      font-size: 0.6rem;
+      font-weight: 800;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-top: 4px;
+      border: none;
+      letter-spacing: 0.03em;
+    }
+    .pitch-ucl .player-price-tag {
+      background: rgba(15, 23, 42, 0.85);
+      color: #e2e8f0;
+      font-size: 0.55rem;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-top: 2px;
+    }
+    .pitch-ucl .role-badge {
+      background: #3B82F6;
+      color: #fff;
+      border: none;
+      top: -3px;
+      right: 0;
+      width: 18px;
+      height: 18px;
+      font-size: 0.55rem;
+    }
+    .pitch-ucl .ucl-pos-badge {
+      display: block;
+      background: #152238;
+      color: #fff;
+      font-size: 0.58rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 4px;
+      letter-spacing: 0.04em;
+      text-align: center;
     }
 
     .pitch-row {
       display: flex;
       justify-content: space-around;
-      align-items: center;
+      align-items: flex-start;
     }
 
     .player-slot {
@@ -533,12 +691,12 @@
     }
 
     .player-slot.selected-swap {
-      transform: scale(1.1);
+      transform: scale(1.08);
     }
 
     .player-slot.selected-swap .jersey-icon {
-      border-color: #34D399 !important;
-      box-shadow: 0 0 14px #34D399;
+      box-shadow: 0 0 16px #34D399 !important;
+      outline: 2px solid #34D399;
     }
 
     .jersey-icon {
@@ -559,8 +717,8 @@
     .jersey-icon img {
       width: 100%;
       height: 100%;
-      object-fit: cover;
-      object-position: center top;
+      object-fit: contain;
+      object-position: center center;
       background: #1a1208;
     }
     .jersey-icon .ph-fallback {
@@ -569,8 +727,7 @@
     }
 
     .jersey-ucl-style {
-      background: linear-gradient(135deg, #1E3A8A, #3B82F6);
-      color: #FFFFFF;
+      /* kept for compatibility; UCL pitch rules override */
     }
 
     .empty-slot {
@@ -1113,6 +1270,10 @@
             <span class="chip-label">Formation:</span>
             <span class="chip-value" id="sq-formation">4-3-3</span>
           </div>
+          <div class="squad-info-chip">
+            <span class="chip-label">Chip:</span>
+            <span class="chip-value" id="sq-active-chip">None</span>
+          </div>
         </div>
 
         <!-- FORMATION SELECTOR -->
@@ -1478,79 +1639,83 @@
     let viceCaptainIdUCL = null;
     let activeChipUCL = null;
 
-    /* TEAM JERSEY / CREST FALLBACK (used when player has no face photo) */
+    /* TEAM JERSEY FALLBACK — kit-style shirts (like official FPL) when no face photo */
     const TEAM_JERSEY = {
-      // EPL
-      'Arsenal': 'https://resources.premierleague.com/premierleague/badges/t3.png',
-      'Aston Villa': 'https://resources.premierleague.com/premierleague/badges/t7.png',
-      'Bournemouth': 'https://resources.premierleague.com/premierleague/badges/t91.png',
-      'Brentford': 'https://resources.premierleague.com/premierleague/badges/t94.png',
-      'Brighton': 'https://resources.premierleague.com/premierleague/badges/t36.png',
-      'Brighton & Hove Albion': 'https://resources.premierleague.com/premierleague/badges/t36.png',
-      'Chelsea': 'https://resources.premierleague.com/premierleague/badges/t8.png',
-      'Crystal Palace': 'https://resources.premierleague.com/premierleague/badges/t31.png',
-      'Everton': 'https://resources.premierleague.com/premierleague/badges/t11.png',
-      'Fulham': 'https://resources.premierleague.com/premierleague/badges/t54.png',
-      'Ipswich': 'https://resources.premierleague.com/premierleague/badges/t40.png',
-      'Ipswich Town': 'https://resources.premierleague.com/premierleague/badges/t40.png',
-      'Leicester': 'https://resources.premierleague.com/premierleague/badges/t13.png',
-      'Leicester City': 'https://resources.premierleague.com/premierleague/badges/t13.png',
-      'Liverpool': 'https://resources.premierleague.com/premierleague/badges/t14.png',
-      'Manchester City': 'https://resources.premierleague.com/premierleague/badges/t43.png',
-      'Man City': 'https://resources.premierleague.com/premierleague/badges/t43.png',
-      'Manchester United': 'https://resources.premierleague.com/premierleague/badges/t1.png',
-      'Man Utd': 'https://resources.premierleague.com/premierleague/badges/t1.png',
-      'Man United': 'https://resources.premierleague.com/premierleague/badges/t1.png',
-      'Newcastle': 'https://resources.premierleague.com/premierleague/badges/t4.png',
-      'Newcastle United': 'https://resources.premierleague.com/premierleague/badges/t4.png',
-      'Nottingham Forest': 'https://resources.premierleague.com/premierleague/badges/t17.png',
-      "Nott'm Forest": 'https://resources.premierleague.com/premierleague/badges/t17.png',
-      'Southampton': 'https://resources.premierleague.com/premierleague/badges/t20.png',
-      'Tottenham': 'https://resources.premierleague.com/premierleague/badges/t6.png',
-      'Tottenham Hotspur': 'https://resources.premierleague.com/premierleague/badges/t6.png',
-      'Spurs': 'https://resources.premierleague.com/premierleague/badges/t6.png',
-      'West Ham': 'https://resources.premierleague.com/premierleague/badges/t21.png',
-      'West Ham United': 'https://resources.premierleague.com/premierleague/badges/t21.png',
-      'Wolves': 'https://resources.premierleague.com/premierleague/badges/t39.png',
-      'Wolverhampton': 'https://resources.premierleague.com/premierleague/badges/t39.png',
-      'Wolverhampton Wanderers': 'https://resources.premierleague.com/premierleague/badges/t39.png',
-      // Common UCL / European
+      // EPL — official FPL shirt images
+      'Arsenal': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_3-66.webp',
+      'Aston Villa': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_7-66.webp',
+      'Bournemouth': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_91-66.webp',
+      'Brentford': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_94-66.webp',
+      'Brighton': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_36-66.webp',
+      'Brighton & Hove Albion': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_36-66.webp',
+      'Chelsea': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_8-66.webp',
+      'Crystal Palace': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_31-66.webp',
+      'Everton': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_11-66.webp',
+      'Fulham': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_54-66.webp',
+      'Ipswich': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_40-66.webp',
+      'Ipswich Town': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_40-66.webp',
+      'Leicester': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_13-66.webp',
+      'Leicester City': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_13-66.webp',
+      'Leeds': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_2-66.webp',
+      'Leeds United': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_2-66.webp',
+      'Liverpool': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_14-66.webp',
+      'Manchester City': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_43-66.webp',
+      'Man City': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_43-66.webp',
+      'Manchester United': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_1-66.webp',
+      'Man Utd': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_1-66.webp',
+      'Man United': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_1-66.webp',
+      'Newcastle': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_4-66.webp',
+      'Newcastle United': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_4-66.webp',
+      'Nottingham Forest': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_17-66.webp',
+      "Nott'm Forest": 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_17-66.webp',
+      'Southampton': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_20-66.webp',
+      'Tottenham': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_6-66.webp',
+      'Tottenham Hotspur': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_6-66.webp',
+      'Spurs': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_6-66.webp',
+      'West Ham': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_21-66.webp',
+      'West Ham United': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_21-66.webp',
+      'Wolves': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_39-66.webp',
+      'Wolverhampton': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_39-66.webp',
+      'Sunderland': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_56-66.webp',
+      // UCL — club crests (kit-style fallback when no face)
       'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
       'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+      'Bayern München': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
       'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-      'Bayern': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
-      'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
       'Paris Saint-Germain': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
+      'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
       'Inter': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
-      'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
-      'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d2/A.C._Milan_logo.svg',
-      'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/1/15/Juventus_FC_2017_logo.svg',
+      'Atlético de Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
       'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
-      'Atlético Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
-      'Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
-      'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg'
+      'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
+      'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_Clube_de_Portugal_%28Logo%29.svg',
+      'FC Porto': 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg',
+      'Porto': 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg',
+      'Galatasaray': 'https://upload.wikimedia.org/wikipedia/en/7/7e/Galatasaray_Sports_Club_Logo.png',
+      'Club Brugge': 'https://upload.wikimedia.org/wikipedia/en/d/d5/Club_Brugge_KV_logo.svg'
     };
 
     function getTeamJerseyUrl(teamName) {
       if (!teamName) return null;
       const t = String(teamName).trim();
       if (TEAM_JERSEY[t]) return TEAM_JERSEY[t];
-      // fuzzy match
-      const key = Object.keys(TEAM_JERSEY).find(k => t.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(t.toLowerCase()));
+      const key = Object.keys(TEAM_JERSEY).find(k =>
+        t.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(t.toLowerCase())
+      );
       return key ? TEAM_JERSEY[key] : null;
     }
 
     function getPlayerAvatarHTML(player, sizeClass = '') {
       const jerseyUrl = getTeamJerseyUrl(player.team);
+      // Face photo first → on error team jersey → on error shirt icon
       if (player.photoUrl) {
-        // Try face photo first; on error fall back to team jersey (or shirt icon)
         const fallback = jerseyUrl
-          ? `this.onerror=null; this.src='${jerseyUrl}'; this.style.objectFit='contain'; this.style.padding='2px'; this.style.background='#fff';`
-          : `this.onerror=null; this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-shirt ph-fallback'}));`;
+          ? `this.onerror=null;this.src='${jerseyUrl}';this.style.objectFit='contain';this.style.padding='3px';this.style.background='#1a1208';`
+          : `this.onerror=null;this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-shirt ph-fallback'}));`;
         return `<img src="${player.photoUrl}" alt="${player.name}" loading="lazy" class="${sizeClass}" onerror="${fallback}" />`;
       }
       if (jerseyUrl) {
-        return `<img src="${jerseyUrl}" alt="${player.team}" loading="lazy" class="${sizeClass}" style="object-fit:contain; padding:2px; background:#fff;" onerror="this.onerror=null; this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-shirt ph-fallback'}));" />`;
+        return `<img src="${jerseyUrl}" alt="${player.team||''}" loading="lazy" class="${sizeClass}" style="object-fit:contain;padding:3px;background:#1a1208;" onerror="this.onerror=null;this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-shirt ph-fallback'}));" />`;
       }
       return `<i class="fa-solid fa-shirt ph-fallback"></i>`;
     }
@@ -1797,6 +1962,7 @@
         }
         recalculateBudget();
         renderPitch();
+        updateChipUI();
         updateJoinButtons();
       } catch (e) {
         console.error('❌ Exception loading squads:', e);
@@ -1871,8 +2037,8 @@
         }
 
         console.log('✅ Saved:', data);
-        isGameweekLocked = true;
-        alert(`✅ Your ${currentSquadLeague} squad has been saved to the server and locked for Gameweek 1!`);
+        // Do NOT lock on save — chips & transfers stay open until real GW deadline
+        alert(`✅ Your ${currentSquadLeague} squad has been saved! You can still change chips and make transfers until the gameweek starts.`);
       } catch (e) {
         console.error('❌ Exception:', e);
         alert("❌ Network error: " + e.message);
@@ -2044,21 +2210,59 @@
       });
     }
 
-    function toggleChip(chipName) {
+    function updateChipUI() {
+      const active = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
+      const tcBtn = document.getElementById('chip-tc');
+      const bbBtn = document.getElementById('chip-bb');
+      if (tcBtn) tcBtn.classList.toggle('active', active === 'TC');
+      if (bbBtn) bbBtn.classList.toggle('active', active === 'BB');
+      const chipLabel = document.getElementById('sq-active-chip');
+      if (chipLabel) {
+        if (active === 'TC') chipLabel.textContent = 'Triple Captain';
+        else if (active === 'BB') chipLabel.textContent = 'Bench Boost';
+        else chipLabel.textContent = 'None';
+      }
+    }
+
+    async function toggleChip(chipName) {
       if (isGameweekLocked) {
         alert("⚠️ Gameweek contest has started! Chips cannot be modified.");
         return;
       }
+
+      // Only one chip at a time — tap same chip again to cancel
       if (currentSquadLeague === 'EPL') {
         activeChipEPL = activeChipEPL === chipName ? null : chipName;
       } else {
         activeChipUCL = activeChipUCL === chipName ? null : chipName;
       }
-      
+
+      updateChipUI();
+      renderPitch(); // refresh 3C badge on captain
+
       const active = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
-      document.getElementById('chip-tc').classList.toggle('active', active === 'TC');
-      document.getElementById('chip-bb').classList.toggle('active', active === 'BB');
-      alert(`Chip ${active ? active + ' activated!' : 'deactivated.'} for ${currentSquadLeague}`);
+      const label = active === 'TC' ? 'Triple Captain' : (active === 'BB' ? 'Bench Boost' : null);
+
+      // Auto-save chip only (UPDATE existing row — does not wipe squad)
+      if (supabaseClient && currentTelegramId) {
+        try {
+          const { error } = await supabaseClient
+            .from('user_squads')
+            .update({ active_chip: active || null })
+            .eq('telegram_id', currentTelegramId)
+            .eq('league', currentSquadLeague)
+            .eq('gameweek', 1);
+          if (error) console.warn('Chip save warning:', error.message);
+        } catch (e) {
+          console.warn('Chip auto-save failed:', e);
+        }
+      }
+
+      if (label) {
+        alert(`✅ ${label} activated for ${currentSquadLeague}!\n\nIt will apply when the gameweek starts. Tap the chip again to cancel.`);
+      } else {
+        alert(`Chip deactivated for ${currentSquadLeague}.`);
+      }
     }
 
     function setSquadLeague(league) {
@@ -2069,9 +2273,7 @@
       const pitch = document.getElementById('pitch-container');
       pitch.className = league === 'EPL' ? 'pitch-fpl' : 'pitch-ucl';
 
-      const activeChip = league === 'EPL' ? activeChipEPL : activeChipUCL;
-      document.getElementById('chip-tc').classList.toggle('active', activeChip === 'TC');
-      document.getElementById('chip-bb').classList.toggle('active', activeChip === 'BB');
+      updateChipUI();
 
       swapFirstPlayer = null;
       transferOutPlayer = null;
@@ -2120,35 +2322,51 @@
 
       for (let i = 0; i < 1; i++) {
         if (starterGKP[i]) gkpRow.appendChild(createPlayerSlot(starterGKP[i]));
-        else gkpRow.appendChild(createEmptySlot());
+        else gkpRow.appendChild(createEmptySlot('GKP'));
       }
       for (let i = 0; i < form.def; i++) {
         if (starterDEF[i]) defRow.appendChild(createPlayerSlot(starterDEF[i]));
-        else defRow.appendChild(createEmptySlot());
+        else defRow.appendChild(createEmptySlot('DEF'));
       }
       for (let i = 0; i < form.mid; i++) {
         if (starterMID[i]) midRow.appendChild(createPlayerSlot(starterMID[i]));
-        else midRow.appendChild(createEmptySlot());
+        else midRow.appendChild(createEmptySlot('MID'));
       }
       for (let i = 0; i < form.fwd; i++) {
         if (starterFWD[i]) fwdRow.appendChild(createPlayerSlot(starterFWD[i]));
-        else fwdRow.appendChild(createEmptySlot());
+        else fwdRow.appendChild(createEmptySlot('FWD'));
       }
       for (let i = 0; i < 4; i++) {
         if (bench[i]) benchRow.appendChild(createPlayerSlot(bench[i]));
-        else benchRow.appendChild(createEmptySlot());
+        else benchRow.appendChild(createEmptySlot('ALL'));
       }
     }
 
-    function createEmptySlot() {
+    function createEmptySlot(pos) {
       const empty = document.createElement('div');
       empty.className = 'player-slot';
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
+      let posLabel = (pos && pos !== 'ALL') ? pos : 'ADD';
+      const isUCL = currentSquadLeague === 'UCL';
+      // UCL reference uses "GK" instead of "GKP"
+      if (isUCL && posLabel === 'GKP') posLabel = 'GK';
+
       if (currentSquad.length >= 15) {
-        empty.innerHTML = `<div class="jersey-icon empty-slot" style="opacity:0.4;">+</div><span class="player-name-tag">Full</span>`;
+        if (isUCL) {
+          empty.innerHTML = `<div class="jersey-icon empty-slot" style="opacity:0.35;">+</div><span class="ucl-pos-badge" style="opacity:0.5;">Full</span>`;
+        } else {
+          empty.innerHTML = `<div class="jersey-icon empty-slot" style="opacity:0.4;"><i class="fa-solid fa-user-plus" style="font-size:0.95rem;"></i></div><span class="player-name-tag epl-pos-label">Full</span>`;
+        }
       } else {
-        empty.onclick = () => openMarketModal();
-        empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="player-name-tag">Add</span>`;
+        const filterPos = pos || 'ALL';
+        empty.onclick = () => openMarketModal(filterPos);
+        if (isUCL) {
+          // Shirt silhouette + dark position badge (PS5 / UCL style)
+          empty.innerHTML = `<div class="jersey-icon empty-slot">+</div><span class="ucl-pos-badge">${posLabel}</span>`;
+        } else {
+          // Green card with person+ icon and position label (FPL style)
+          empty.innerHTML = `<div class="jersey-icon empty-slot"><i class="fa-solid fa-user-plus" style="font-size:1rem; opacity:0.95;"></i></div><span class="player-name-tag epl-pos-label">${posLabel}</span>`;
+        }
       }
       return empty;
     }
@@ -2166,23 +2384,33 @@
       const captainId = currentSquadLeague === 'EPL' ? captainIdEPL : captainIdUCL;
       const viceCaptainId = currentSquadLeague === 'EPL' ? viceCaptainIdEPL : viceCaptainIdUCL;
       const activeChip = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
+      const isUCL = currentSquadLeague === 'UCL';
 
       if (player.id === captainId) {
         const cLabel = activeChip === 'TC' ? '3C' : 'C';
         badge = `<span class="role-badge">${cLabel}</span>`;
       }
-      if (player.id === viceCaptainId) badge = '<span class="role-badge" style="background:#E2E8F0; color:#120A04;">VC</span>';
+      if (player.id === viceCaptainId) badge = `<span class="role-badge" style="background:${isUCL ? '#64748b' : '#E2E8F0'}; color:${isUCL ? '#fff' : '#120A04'};">VC</span>`;
 
-      const uclClass = currentSquadLeague === 'UCL' ? 'jersey-ucl-style' : '';
       const avatarHTML = getPlayerAvatarHTML(player);
+      const currency = isUCL ? '€' : '£';
+      const shortName = (player.name || '').split(' ').slice(-1)[0] || player.name;
 
-      const currency = currentSquadLeague === 'UCL' ? '€' : '£';
-      div.innerHTML = `
-        ${badge}
-        <div class="jersey-icon ${uclClass}">${avatarHTML}</div>
-        <span class="player-name-tag">${player.name}</span>
-        <span class="player-price-tag">${currency}${player.price}m</span>
-      `;
+      if (isUCL) {
+        div.innerHTML = `
+          ${badge}
+          <div class="jersey-icon jersey-ucl-style">${avatarHTML}</div>
+          <span class="player-name-tag">${shortName}</span>
+          <span class="player-price-tag">${currency}${player.price}m</span>
+        `;
+      } else {
+        div.innerHTML = `
+          ${badge}
+          <div class="jersey-icon">${avatarHTML}</div>
+          <span class="player-name-tag">${shortName}</span>
+          <span class="player-price-tag">${currency}${player.price}m</span>
+        `;
+      }
       return div;
     }
 
@@ -2313,7 +2541,7 @@
       renderPitch();
     }
 
-    function openMarketModal() {
+    function openMarketModal(posFilter) {
       if (isGameweekLocked) {
         alert("⚠️ Gameweek contest has started! Market transfers are locked.");
         return;
@@ -2321,7 +2549,7 @@
       transferOutPlayer = null;
       const searchEl = document.getElementById('market-search');
       if (searchEl) searchEl.value = '';
-      filterMarket('ALL');
+      filterMarket(posFilter || 'ALL');
       document.getElementById('modal-market').classList.add('active');
     }
 
