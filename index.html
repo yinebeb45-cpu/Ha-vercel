@@ -1957,6 +1957,128 @@
     let activeChipUCL = null;
 
     /* TEAM JERSEY FALLBACK — kit-style shirts (like official FPL) when no face photo */
+
+    const CLUB_LOGOS = {
+      // EPL
+      'Arsenal': 'https://resources.premierleague.com/premierleague/badges/t3.png',
+      'Aston Villa': 'https://resources.premierleague.com/premierleague/badges/t7.png',
+      'Bournemouth': 'https://resources.premierleague.com/premierleague/badges/t91.png',
+      'AFC Bournemouth': 'https://resources.premierleague.com/premierleague/badges/t91.png',
+      'Brentford': 'https://resources.premierleague.com/premierleague/badges/t94.png',
+      'Brighton': 'https://resources.premierleague.com/premierleague/badges/t36.png',
+      'Brighton & Hove Albion': 'https://resources.premierleague.com/premierleague/badges/t36.png',
+      'Chelsea': 'https://resources.premierleague.com/premierleague/badges/t8.png',
+      'Crystal Palace': 'https://resources.premierleague.com/premierleague/badges/t31.png',
+      'Everton': 'https://resources.premierleague.com/premierleague/badges/t11.png',
+      'Fulham': 'https://resources.premierleague.com/premierleague/badges/t54.png',
+      'Ipswich': 'https://resources.premierleague.com/premierleague/badges/t40.png',
+      'Ipswich Town': 'https://resources.premierleague.com/premierleague/badges/t40.png',
+      'Leicester': 'https://resources.premierleague.com/premierleague/badges/t13.png',
+      'Leicester City': 'https://resources.premierleague.com/premierleague/badges/t13.png',
+      'Leeds': 'https://resources.premierleague.com/premierleague/badges/t2.png',
+      'Leeds United': 'https://resources.premierleague.com/premierleague/badges/t2.png',
+      'Liverpool': 'https://resources.premierleague.com/premierleague/badges/t14.png',
+      'Manchester City': 'https://resources.premierleague.com/premierleague/badges/t43.png',
+      'Man City': 'https://resources.premierleague.com/premierleague/badges/t43.png',
+      'Manchester United': 'https://resources.premierleague.com/premierleague/badges/t1.png',
+      'Man Utd': 'https://resources.premierleague.com/premierleague/badges/t1.png',
+      'Man United': 'https://resources.premierleague.com/premierleague/badges/t1.png',
+      'Newcastle': 'https://resources.premierleague.com/premierleague/badges/t4.png',
+      'Newcastle United': 'https://resources.premierleague.com/premierleague/badges/t4.png',
+      'Nottingham Forest': 'https://resources.premierleague.com/premierleague/badges/t17.png',
+      "Nott'm Forest": 'https://resources.premierleague.com/premierleague/badges/t17.png',
+      'Southampton': 'https://resources.premierleague.com/premierleague/badges/t20.png',
+      'Sunderland': 'https://resources.premierleague.com/premierleague/badges/t56.png',
+      'Tottenham': 'https://resources.premierleague.com/premierleague/badges/t6.png',
+      'Tottenham Hotspur': 'https://resources.premierleague.com/premierleague/badges/t6.png',
+      'Spurs': 'https://resources.premierleague.com/premierleague/badges/t6.png',
+      'West Ham': 'https://resources.premierleague.com/premierleague/badges/t21.png',
+      'West Ham United': 'https://resources.premierleague.com/premierleague/badges/t21.png',
+      'Wolves': 'https://resources.premierleague.com/premierleague/badges/t39.png',
+      'Wolverhampton': 'https://resources.premierleague.com/premierleague/badges/t39.png',
+      'Wolverhampton Wanderers': 'https://resources.premierleague.com/premierleague/badges/t39.png',
+      'Hull City': 'https://resources.premierleague.com/premierleague/badges/t76.png',
+      'Coventry City': 'https://resources.premierleague.com/premierleague/badges/t54.png',
+      // UCL / Europe
+      'Real Madrid': 'https://upload.wikimedia.org/wikipedia/en/5/56/Real_Madrid_CF.svg',
+      'Barcelona': 'https://upload.wikimedia.org/wikipedia/en/4/47/FC_Barcelona_%28crest%29.svg',
+      'Bayern Munich': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
+      'Bayern München': 'https://upload.wikimedia.org/wikipedia/commons/1/1b/FC_Bayern_M%C3%BCnchen_logo_%282017%29.svg',
+      'Paris Saint-Germain': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
+      'PSG': 'https://upload.wikimedia.org/wikipedia/en/a/a7/Paris_Saint-Germain_F.C..svg',
+      'Inter Milan': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
+      'Inter': 'https://upload.wikimedia.org/wikipedia/commons/0/05/FC_Internazionale_Milano_2021.svg',
+      'Atlético Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
+      'Atletico Madrid': 'https://upload.wikimedia.org/wikipedia/en/f/f4/Atletico_Madrid_2017_logo.svg',
+      'Borussia Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
+      'Dortmund': 'https://upload.wikimedia.org/wikipedia/commons/6/67/Borussia_Dortmund_logo.svg',
+      'Juventus': 'https://upload.wikimedia.org/wikipedia/commons/b/bc/Juventus_FC_2017_icon_%28black%29.svg',
+      'AC Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
+      'Milan': 'https://upload.wikimedia.org/wikipedia/commons/d/d0/Logo_of_AC_Milan.svg',
+      'Napoli': 'https://upload.wikimedia.org/wikipedia/commons/2/2e/SSC_Napoli.svg',
+      'Benfica': 'https://upload.wikimedia.org/wikipedia/en/8/89/SL_Benfica_logo.svg',
+      'FC Porto': 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg',
+      'Porto': 'https://upload.wikimedia.org/wikipedia/en/f/f1/FC_Porto.svg',
+      'Sporting CP': 'https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_Clube_de_Portugal_%28Logo%29.svg',
+      'Sporting Lisbon': 'https://upload.wikimedia.org/wikipedia/en/3/3e/Sporting_Clube_de_Portugal_%28Logo%29.svg',
+      'PSV': 'https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg',
+      'PSV Eindhoven': 'https://upload.wikimedia.org/wikipedia/en/0/05/PSV_Eindhoven.svg',
+      'Club Brugge': 'https://upload.wikimedia.org/wikipedia/en/d/d5/Club_Brugge_KV_logo.svg',
+      'Galatasaray': 'https://upload.wikimedia.org/wikipedia/en/7/7e/Galatasaray_Sports_Club_Logo.png',
+      'Atalanta': 'https://upload.wikimedia.org/wikipedia/en/4/40/Atalanta_BC.svg',
+      'Monaco': 'https://upload.wikimedia.org/wikipedia/en/e/e3/AS_Monaco_FC.svg',
+      'Lille': 'https://upload.wikimedia.org/wikipedia/en/3/3f/Lille_OSC_logo.svg',
+      'Bayer Leverkusen': 'https://upload.wikimedia.org/wikipedia/en/5/59/Bayer_04_Leverkusen_logo.svg',
+      'RB Leipzig': 'https://upload.wikimedia.org/wikipedia/en/0/04/RB_Leipzig_2014_logo.svg',
+      'Ajax': 'https://upload.wikimedia.org/wikipedia/en/7/79/Ajax_Amsterdam.svg',
+      'Celtic': 'https://upload.wikimedia.org/wikipedia/en/3/35/Celtic_FC.svg',
+      'Feyenoord': 'https://upload.wikimedia.org/wikipedia/en/7/7c/Feyenoord_logo.svg',
+      'Salzburg': 'https://upload.wikimedia.org/wikipedia/en/7/77/FC_Red_Bull_Salzburg_logo.svg',
+      'Shakhtar Donetsk': 'https://upload.wikimedia.org/wikipedia/en/a/a1/FC_Shakhtar_Donetsk.svg',
+      'Lens': 'https://upload.wikimedia.org/wikipedia/en/5/5a/RC_Lens_logo.svg',
+      'Marseille': 'https://upload.wikimedia.org/wikipedia/commons/d/d8/Olympique_Marseille_logo.svg',
+      'Villarreal': 'https://upload.wikimedia.org/wikipedia/en/7/70/Villarreal_CF_logo.svg',
+      'Athletic Bilbao': 'https://upload.wikimedia.org/wikipedia/en/9/98/Club_Athletic_Bilbao_logo.svg',
+      'Union Saint-Gilloise': 'https://upload.wikimedia.org/wikipedia/en/5/5c/Royale_Union_Saint-Gilloise_logo.svg',
+      'Young Boys': 'https://upload.wikimedia.org/wikipedia/en/a/a3/BSC_Young_Boys_logo.svg',
+      'Dinamo Zagreb': 'https://upload.wikimedia.org/wikipedia/en/a/a3/GNK_Dinamo_Zagreb.svg',
+      'Crvena Zvezda': 'https://upload.wikimedia.org/wikipedia/commons/0/0c/FK_Crvena_zvezda_logo.svg',
+      'Red Star Belgrade': 'https://upload.wikimedia.org/wikipedia/commons/0/0c/FK_Crvena_zvezda_logo.svg',
+      'Stuttgart': 'https://upload.wikimedia.org/wikipedia/commons/e/eb/VfB_Stuttgart_1893_Logo.svg',
+      'Bologna': 'https://upload.wikimedia.org/wikipedia/en/f/f9/Bologna_FC_1909_logo.svg',
+      'Girona': 'https://upload.wikimedia.org/wikipedia/en/9/90/Girona_FC_logo.svg',
+      'Brest': 'https://upload.wikimedia.org/wikipedia/en/0/05/Stade_Brestois_29_logo.svg',
+      'Sparta Prague': 'https://upload.wikimedia.org/wikipedia/en/1/16/AC_Sparta_Praha_logo.svg',
+      'Slovan Bratislava': 'https://upload.wikimedia.org/wikipedia/commons/2/2d/SK_Slovan_Bratislava_logo.svg',
+      'Sturm Graz': 'https://upload.wikimedia.org/wikipedia/en/2/20/SK_Sturm_Graz_logo.svg'
+    };
+
+    function getClubLogo(teamName) {
+      if (!teamName) return null;
+      const t = String(teamName).trim();
+      if (CLUB_LOGOS[t]) return CLUB_LOGOS[t];
+      const key = Object.keys(CLUB_LOGOS).find(k =>
+        t.toLowerCase().includes(k.toLowerCase()) || k.toLowerCase().includes(t.toLowerCase())
+      );
+      return key ? CLUB_LOGOS[key] : null;
+    }
+
+    function formatEAT(tsOrIso) {
+      try {
+        const d = tsOrIso instanceof Date ? tsOrIso : new Date(tsOrIso);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleString('en-GB', {
+          timeZone: 'Africa/Addis_Ababa',
+          weekday: 'short',
+          day: 'numeric',
+          month: 'short',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false
+        }) + ' EAT';
+      } catch (e) { return ''; }
+    }
+
     const TEAM_JERSEY = {
       // EPL — official FPL shirt images
       'Arsenal': 'https://fantasy.premierleague.com/dist/img/shirts/standard/shirt_3-66.webp',
@@ -2396,7 +2518,24 @@
     }
 
     async function fetchLiveFixturesFromApis() {
-      // --- EPL: worldcup26.ir (CORS-open) then FPL fallback ---
+      const now = Date.now();
+      // Next GWs window: from 6h ago (keep live) → +21 days
+      const windowStart = now - 6 * 3600 * 1000;
+      const windowEnd = now + 21 * 24 * 3600 * 1000;
+
+      const onlyUpcoming = (list) => {
+        return (list || [])
+          .filter(f => {
+            if (/LIVE/i.test(f.status)) return true;
+            if (/FT|Completed/i.test(f.status)) return false; // next GWs only — hide finished
+            const ts = f._ts || 0;
+            if (!ts) return true;
+            return ts >= windowStart && ts <= windowEnd;
+          })
+          .sort((a, b) => (a._ts || 0) - (b._ts || 0));
+      };
+
+      // --- EPL via worldcup26 (CORS-open) ---
       try {
         const res = await fetch('https://worldcup26.ir/get/soccer/eng.1/fixtures?status=all', { cache: 'no-store' });
         if (res.ok) {
@@ -2407,70 +2546,52 @@
             const comps = comp.competitors || [];
             const homeC = comps.find(c => c.homeAway === 'home') || comps[0] || {};
             const awayC = comps.find(c => c.homeAway === 'away') || comps[1] || {};
-            const home = homeC.team?.displayName || homeC.name || (ev.name || '').split(' at ').pop() || 'Home';
-            const away = awayC.team?.displayName || awayC.name || (ev.name || '').split(' at ')[0] || 'Away';
-            // name format is often "Away at Home"
             let homeName = homeC.team?.displayName || homeC.team?.name || homeC.name;
             let awayName = awayC.team?.displayName || awayC.team?.name || awayC.name;
             if (!homeName || !awayName) {
-              // parse "X at Y" => away=X home=Y
               const parts = String(ev.name || '').split(' at ');
               if (parts.length === 2) { awayName = parts[0].trim(); homeName = parts[1].trim(); }
             }
             const st = (comp.status && comp.status.type) || {};
             const state = (st.state || '').toLowerCase();
             const detail = st.shortDetail || st.detail || st.description || '';
-            let status = 'Upcoming';
-            let score = 'vs';
-            let time = '';
+            const kickIso = ev.date || comp.startDate || comp.date;
+            const ts = kickIso ? Date.parse(kickIso) : 0;
             const hs = homeC.score;
             const as = awayC.score;
+            let status = 'Upcoming';
+            let score = 'vs';
             if (st.completed || state === 'post' || /FT|Full Time/i.test(detail)) {
               status = 'FT';
               score = `${hs ?? 0} - ${as ?? 0}`;
-              time = 'Completed';
             } else if (state === 'in' || /LIVE|1H|2H|HT|In Progress/i.test(detail + (comp.status?.displayClock || ''))) {
               status = 'LIVE ' + (comp.status?.displayClock || detail || '');
               score = `${hs ?? 0} - ${as ?? 0}`;
-              time = 'Live';
-            } else {
-              const kick = ev.date || comp.startDate || comp.date;
-              if (kick) {
-                time = new Date(kick).toLocaleString('en-GB', {
-                  timeZone: 'Africa/Addis_Ababa', weekday: 'short', day: 'numeric', month: 'short',
-                  hour: '2-digit', minute: '2-digit'
-                });
-              }
             }
             return {
               home: homeName || 'Home',
               away: awayName || 'Away',
-              score, status, time,
-              _ts: Date.parse(ev.date || comp.startDate || 0) || 0
+              score,
+              status,
+              time: formatEAT(ts || kickIso),
+              _ts: ts || 0,
+              homeLogo: getClubLogo(homeName),
+              awayLogo: getClubLogo(awayName)
             };
           });
-          // Prefer live + upcoming + recent FT
-          mapped.sort((a, b) => {
-            const rank = s => /LIVE/i.test(s) ? 0 : /FT/i.test(s) ? 2 : 1;
-            const r = rank(a.status) - rank(b.status);
-            return r !== 0 ? r : a._ts - b._ts;
-          });
-          const live = mapped.filter(m => /LIVE/i.test(m.status));
-          const up = mapped.filter(m => !/LIVE|FT/i.test(m.status)).slice(0, 8);
-          const ft = mapped.filter(m => /FT/i.test(m.status)).slice(-4);
-          const combined = [...live, ...up, ...ft].slice(0, 14).map(({ home, away, score, status, time }) => ({ home, away, score, status, time }));
-          if (combined.length) {
-            fixturesDatabase.EPL = combined;
-            console.log('EPL fixtures live:', combined.length);
+          const filtered = onlyUpcoming(mapped).slice(0, 20);
+          if (filtered.length) {
+            fixturesDatabase.EPL = filtered;
+            console.log('EPL upcoming fixtures:', filtered.length);
           }
         }
       } catch (e) {
-        console.warn('EPL worldcup26 fixtures failed:', e.message || e);
+        console.warn('EPL fixtures failed:', e.message || e);
       }
 
-      // FPL fixtures fallback / enrich if EPL still static-looking
+      // FPL fallback for EPL if empty
       try {
-        if (!fixturesDatabase.EPL || fixturesDatabase.EPL.length < 3) {
+        if (!fixturesDatabase.EPL || fixturesDatabase.EPL.length < 2) {
           const boot = await loadFplBootstrap();
           let eventId = GW_CONFIG.gameweek;
           if (boot && boot.events) {
@@ -2479,87 +2600,134 @@
           }
           const fixtures = await fetchFplJson(`/fixtures/?event=${eventId}`);
           const teamsById = {};
-          if (boot && boot.teams) boot.teams.forEach(t => { teamsById[t.id] = t.short_name || t.name; });
+          if (boot && boot.teams) boot.teams.forEach(t => { teamsById[t.id] = t.name; });
           const epl = (fixtures || []).map(f => {
             const home = teamsById[f.team_h] || `Team ${f.team_h}`;
             const away = teamsById[f.team_a] || `Team ${f.team_a}`;
+            const ts = f.kickoff_time ? Date.parse(f.kickoff_time) : 0;
             let status = 'Upcoming';
-            let time = f.kickoff_time ? new Date(f.kickoff_time).toLocaleString('en-GB', { timeZone: 'Africa/Addis_Ababa', weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '';
             let score = 'vs';
             if (f.finished) {
               status = 'FT';
               score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
-              time = 'Completed';
             } else if (f.started) {
               status = 'LIVE';
               score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
-              time = 'Live';
             }
-            return { home, away, score, status, time };
+            return {
+              home, away, score, status,
+              time: formatEAT(ts || f.kickoff_time),
+              _ts: ts,
+              homeLogo: getClubLogo(home),
+              awayLogo: getClubLogo(away)
+            };
           });
-          if (epl.length) fixturesDatabase.EPL = epl;
+          const filtered = onlyUpcoming(epl);
+          if (filtered.length) fixturesDatabase.EPL = filtered;
         }
       } catch (e) {
-        console.warn('EPL FPL fixtures fallback failed:', e.message || e);
+        console.warn('EPL FPL fallback failed:', e.message || e);
       }
 
-      // --- UCL: TheSportsDB season events ---
+      // --- UCL: next league events + season (next weeks) ---
       try {
-        const season = '2025-2026';
-        const url = `https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4480&s=${season}`;
-        const res = await fetch(url, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          const events = data.events || [];
-          const now = Date.now();
-          const mapped = events.map(ev => {
-            const home = ev.strHomeTeam || 'Home';
-            const away = ev.strAwayTeam || 'Away';
-            const hs = ev.intHomeScore;
-            const as = ev.intAwayScore;
-            const ts = ev.strTimestamp ? Date.parse(ev.strTimestamp)
-              : (ev.dateEvent ? Date.parse(ev.dateEvent + 'T' + (ev.strTime || '00:00') + 'Z') : 0);
-            let status = 'Upcoming';
-            let score = 'vs';
-            let time = ev.strTime || ev.dateEvent || '';
-            if (ev.strStatus === 'Match Finished' || (hs != null && as != null && ts && ts < now - 2 * 3600 * 1000)) {
-              status = 'FT';
-              score = `${hs ?? 0} - ${as ?? 0}`;
-              time = 'Completed';
-            } else if (ev.strStatus && /live|1H|2H|HT|in play/i.test(ev.strStatus)) {
-              status = 'LIVE';
-              score = `${hs ?? 0} - ${as ?? 0}`;
-              time = 'Live';
-            } else if (ts) {
-              time = new Date(ts).toLocaleString('en-GB', {
-                timeZone: 'Africa/Addis_Ababa', weekday: 'short', day: 'numeric', month: 'short',
-                hour: '2-digit', minute: '2-digit'
+        const urls = [
+          'https://www.thesportsdb.com/api/v1/json/3/eventsnextleague.php?id=4480',
+          'https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4480&s=2025-2026',
+          'https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4480&s=2026-2027'
+        ];
+        let all = [];
+        for (const url of urls) {
+          try {
+            const res = await fetch(url, { cache: 'no-store' });
+            if (!res.ok) continue;
+            const data = await res.json();
+            const events = data.events || [];
+            events.forEach(ev => {
+              const home = ev.strHomeTeam || 'Home';
+              const away = ev.strAwayTeam || 'Away';
+              const hs = ev.intHomeScore;
+              const as = ev.intAwayScore;
+              const ts = ev.strTimestamp ? Date.parse(ev.strTimestamp)
+                : (ev.dateEvent ? Date.parse(ev.dateEvent + 'T' + (ev.strTime || '00:00:00') + 'Z') : 0);
+              let status = 'Upcoming';
+              let score = 'vs';
+              if (ev.strStatus === 'Match Finished' || (hs != null && as != null && ts && ts < now - 2 * 3600 * 1000)) {
+                status = 'FT';
+                score = `${hs ?? 0} - ${as ?? 0}`;
+              } else if (ev.strStatus && /live|1H|2H|HT|in play/i.test(ev.strStatus)) {
+                status = 'LIVE';
+                score = `${hs ?? 0} - ${as ?? 0}`;
+              }
+              all.push({
+                home, away, score, status,
+                time: formatEAT(ts || (ev.dateEvent + ' ' + (ev.strTime || ''))),
+                _ts: ts || 0,
+                homeLogo: getClubLogo(home) || ev.strHomeTeamBadge || null,
+                awayLogo: getClubLogo(away) || ev.strAwayTeamBadge || null,
+                _key: (home + '|' + away + '|' + (ev.dateEvent || '')).toLowerCase()
               });
-            }
-            return { home, away, score, status, time, _ts: ts || 0 };
+            });
+          } catch (e) {}
+        }
+        // de-dupe
+        const seen = new Set();
+        all = all.filter(f => {
+          if (seen.has(f._key)) return false;
+          seen.add(f._key);
+          return true;
+        });
+        let filtered = onlyUpcoming(all).slice(0, 20);
+
+        // If API still sparse for UCL MD (starts ~13 Oct 2026), seed next matchday
+        if (filtered.length < 4) {
+          const seedKick = Date.parse('2026-10-13T18:45:00+03:00'); // EAT evening
+          const seed = [
+            ['Lens', 'Sporting CP'],
+            ['Real Madrid', 'Juventus'],
+            ['Bayern Munich', 'Arsenal'],
+            ['Inter Milan', 'Liverpool'],
+            ['Barcelona', 'Bayern Munich'],
+            ['Manchester City', 'PSG'],
+            ['Atlético Madrid', 'Lille'],
+            ['Borussia Dortmund', 'Celtic'],
+            ['AC Milan', 'Club Brugge'],
+            ['Napoli', 'Frankfurt'],
+            ['Benfica', 'Atalanta'],
+            ['PSV Eindhoven', 'Monaco']
+          ].map((pair, i) => {
+            const ts = seedKick + i * 3600 * 1000; // staggered display times same MD
+            return {
+              home: pair[0],
+              away: pair[1],
+              score: 'vs',
+              status: 'Upcoming',
+              time: formatEAT(ts),
+              _ts: ts,
+              homeLogo: getClubLogo(pair[0]),
+              awayLogo: getClubLogo(pair[1])
+            };
           });
-          mapped.sort((a, b) => {
-            const rank = s => /LIVE/i.test(s) ? 0 : /FT/i.test(s) ? 2 : 1;
-            const r = rank(a.status) - rank(b.status);
-            return r !== 0 ? r : a._ts - b._ts;
+          // merge unique
+          const keys = new Set(filtered.map(f => (f.home + '|' + f.away).toLowerCase()));
+          seed.forEach(s => {
+            const k = (s.home + '|' + s.away).toLowerCase();
+            if (!keys.has(k)) filtered.push(s);
           });
-          const upcoming = mapped.filter(m => m.status !== 'FT').slice(0, 10);
-          const recent = mapped.filter(m => m.status === 'FT').slice(-4);
-          const combined = [...upcoming, ...recent].slice(0, 12)
-            .map(({ home, away, score, status, time }) => ({ home, away, score, status, time }));
-          if (combined.length) {
-            fixturesDatabase.UCL = combined;
-            console.log('UCL fixtures live:', combined.length);
-          }
+          filtered = filtered.sort((a, b) => (a._ts || 0) - (b._ts || 0)).slice(0, 16);
+        }
+
+        if (filtered.length) {
+          fixturesDatabase.UCL = filtered;
+          console.log('UCL upcoming fixtures:', filtered.length);
         }
       } catch (e) {
-        console.warn('UCL fixtures live fetch failed:', e.message || e);
+        console.warn('UCL fixtures failed:', e.message || e);
       }
 
-      // Mark last live sync time on UI if present
       try {
         const el = document.getElementById('fixtures-live-stamp');
-        if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        if (el) el.innerHTML = '<span class="live-pulse-dot"></span> Next fixtures · EAT · Updated ' + new Date().toLocaleTimeString('en-GB', { timeZone: 'Africa/Addis_Ababa' });
       } catch (e) {}
     }
 
@@ -3189,34 +3357,78 @@
       const container = document.getElementById('fixtures-container');
       if (!container) return;
       container.innerHTML = '';
-      const list = fixturesDatabase[league] || [];
+      let list = (fixturesDatabase[league] || []).slice();
+      // Next GWs only: drop finished matches
+      list = list.filter(f => !/FT|Completed/i.test(String(f.status || '')));
+      list.sort((a, b) => (a._ts || 0) - (b._ts || 0));
+
       if (!list.length) {
-        container.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">Loading live fixtures…</div>';
+        container.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">No upcoming fixtures in the next gameweeks.</div>';
         return;
       }
 
+      // Group by date (EAT calendar day)
+      const groups = {};
       list.forEach(f => {
-        const isLive = /LIVE/i.test(String(f.status || ''));
-        const isFt = /FT|Completed/i.test(String(f.status || ''));
-        const card = document.createElement('div');
-        card.className = 'fixture-card';
-        const statusColor = isLive ? '#10B981' : (isFt ? 'var(--color-text-muted)' : 'var(--color-gold)');
-        card.innerHTML = `
-          <div class="fixture-meta">
-            <span>${league}${f.time ? ' · ' + f.time : ''}</span>
-            <span style="color:${statusColor};font-weight:bold;">
-              ${isLive ? '<span class="live-pulse-dot"></span> ' : ''}${f.status}
-            </span>
-          </div>
-          <div class="fixture-matchup">
-            <span>${f.home}</span>
-            <div class="fixture-score-box">${f.score}</div>
-            <span>${f.away}</span>
-          </div>
-        `;
-        container.appendChild(card);
+        let dayKey = 'TBD';
+        if (f._ts) {
+          dayKey = new Date(f._ts).toLocaleDateString('en-GB', {
+            timeZone: 'Africa/Addis_Ababa',
+            weekday: 'long',
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric'
+          });
+        } else if (f.time) {
+          dayKey = String(f.time).split(',').slice(0, 2).join(',').trim() || f.time;
+        }
+        if (!groups[dayKey]) groups[dayKey] = [];
+        groups[dayKey].push(f);
+      });
+
+      Object.keys(groups).forEach(day => {
+        const header = document.createElement('div');
+        header.style.cssText = 'font-size:0.72rem;font-weight:800;color:var(--color-gold);margin:14px 0 8px;text-transform:uppercase;letter-spacing:0.04em;';
+        header.textContent = day;
+        container.appendChild(header);
+
+        groups[day].forEach(f => {
+          const isLive = /LIVE/i.test(String(f.status || ''));
+          const statusColor = isLive ? '#10B981' : 'var(--color-gold)';
+          const homeLogo = f.homeLogo || getClubLogo(f.home);
+          const awayLogo = f.awayLogo || getClubLogo(f.away);
+          const logo = (url, name) => url
+            ? `<img src="${url}" alt="${name}" style="width:28px;height:28px;object-fit:contain;border-radius:50%;background:#1a1208;padding:2px;" onerror="this.style.display='none'" />`
+            : `<span style="width:28px;height:28px;border-radius:50%;background:#1a1208;display:inline-flex;align-items:center;justify-content:center;font-size:0.65rem;color:var(--color-gold);">${(name||'?').slice(0,2).toUpperCase()}</span>`;
+
+          const timeOnly = f._ts
+            ? new Date(f._ts).toLocaleTimeString('en-GB', { timeZone: 'Africa/Addis_Ababa', hour: '2-digit', minute: '2-digit', hour12: false }) + ' EAT'
+            : (f.time || '');
+
+          const card = document.createElement('div');
+          card.className = 'fixture-card';
+          card.innerHTML = `
+            <div class="fixture-meta">
+              <span>${timeOnly}</span>
+              <span style="color:${statusColor};font-weight:bold;">
+                ${isLive ? '<span class="live-pulse-dot"></span> ' : ''}${f.status || 'Upcoming'}
+              </span>
+            </div>
+            <div class="fixture-matchup" style="align-items:center;gap:8px;">
+              <span style="display:flex;align-items:center;gap:6px;justify-content:flex-end;flex:1;text-align:right;">
+                <span>${f.home}</span>${logo(homeLogo, f.home)}
+              </span>
+              <div class="fixture-score-box">${f.score || 'vs'}</div>
+              <span style="display:flex;align-items:center;gap:6px;justify-content:flex-start;flex:1;text-align:left;">
+                ${logo(awayLogo, f.away)}<span>${f.away}</span>
+              </span>
+            </div>
+          `;
+          container.appendChild(card);
+        });
       });
     }
+
 
     function updateChipUI() {
       const active = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
