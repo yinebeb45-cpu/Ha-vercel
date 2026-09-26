@@ -1061,7 +1061,87 @@
     .filter-btn.active { background-color: var(--color-gold); color: var(--color-brown-dark); font-weight: bold; }
 
     .market-item {
-      display: flex; align-items: center; justify-content: space-between; background-color: var(--color-brown-dark); border: 1px solid var(--color-brown-border); padding: 10px 12px; border-radius: 8px; margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(33,19,8,0.95), rgba(24,14,6,0.98));
+      border: 1px solid var(--color-brown-border);
+      padding: 10px 12px;
+      border-radius: 12px;
+      margin-bottom: 8px;
+      transition: border-color 0.15s, transform 0.12s;
+    }
+    .market-item:active { transform: scale(0.99); }
+    .market-jersey {
+      width: 42px;
+      height: 48px;
+      flex-shrink: 0;
+      border-radius: 8px;
+      background: linear-gradient(160deg, #2a1a0c, #1a1008);
+      border: 1px solid rgba(255,183,3,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+    }
+    .market-jersey img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center;
+      padding: 3px;
+    }
+    .market-meta {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .market-meta strong {
+      font-size: 0.88rem;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .market-meta .market-sub {
+      font-size: 0.68rem;
+      color: var(--color-text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .market-pos-pill {
+      display: inline-block;
+      background: rgba(255,183,3,0.15);
+      color: var(--color-gold);
+      font-size: 0.58rem;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      letter-spacing: 0.03em;
+    }
+    .market-price {
+      font-weight: 800;
+      color: var(--color-gold);
+      font-size: 0.85rem;
+      margin-right: 6px;
+      white-space: nowrap;
+    }
+    .market-add-btn {
+      padding: 6px 12px !important;
+      font-size: 0.72rem !important;
+      border-radius: 8px !important;
+      min-width: 58px;
+    }
+    .market-add-btn:disabled {
+      opacity: 0.7;
+      background: #3d2a14 !important;
+      color: var(--color-gold) !important;
+      border-color: var(--color-brown-border) !important;
     }
 
     /* BOTTOM NAV */
@@ -1316,11 +1396,18 @@
           </div>
         </div>
 
-        <!-- CONTEST ENTRY (Pay to compete for prizes) -->
+        <div id="gw-deadline-bar" style="margin-bottom:10px; padding:8px 12px; border-radius:10px; border:1px solid var(--color-gold); text-align:center; font-size:0.75rem; font-weight:800; letter-spacing:0.02em;">
+          <i class="fa-solid fa-clock"></i> <span id="gw-deadline-text">GW deadline…</span>
+        </div>
+
+        <!-- CONTEST ENTRY (Pay to compete for prizes + show name on board) -->
         <div id="squad-contest-bar" style="margin-bottom:12px;">
           <button class="btn btn-success" id="btn-squad-pay" onclick="joinLeagueFromWallet(currentSquadLeague)" style="width:100%;">
-            <i class="fa-solid fa-wallet"></i> Pay 100 ETB to Enter Contest
+            <i class="fa-solid fa-wallet"></i> Pay 100 ETB to Enter + Show Name
           </button>
+          <div style="font-size:0.65rem; color:var(--color-text-muted); text-align:center; margin-top:6px;">
+            Unpaid managers appear as “Hidden” on the live board.
+          </div>
         </div>
 
         <div style="display: flex; gap: 8px;">
@@ -1626,9 +1713,105 @@
     let currentTelegramId = null;
     let currentUserName = 'Ha Manager';
 
-    /* LEADERBOARD STATE */
-    let leaderboardChannel = null;
-    let realtimeConnected = false;
+    /* ===== GAMEWEEK DEADLINE (change this date for each GW) =====
+       EAT = UTC+3. After this instant: chips, transfers, market add, save = LOCKED */
+    const GW_CONFIG = {
+      gameweek: 1,
+      deadlineISO: '2026-09-27T14:00:00+03:00' // Sun 27 Sep 2026, 14:00 EAT
+    };
+
+    /* Sofascore face IDs for stars (overrides bad api-sports photos) */
+    const SOFASCORE_PHOTO = {
+      'raphinha': 831005,
+      'lautaro martínez': 823984,
+      'lautaro martinez': 823984,
+      'ferran torres': 855833,
+      'lamine yamal': 1402912,
+      'vinícius júnior': 868812,
+      'vinicius junior': 868812,
+      'vinicius jr': 868812,
+      'jude bellingham': 991011,
+      'kylian mbappé': 126415,
+      'kylian mbappe': 126415,
+      'rodrygo': 868813,
+      'harry kane': 13832,
+      'pedri': 868421,
+      'gavi': 1122344,
+      'frenkie de jong': 827606,
+      'robert lewandowski': 14817,
+      'thibaut courtois': 70996,
+      'federico valverde': 831239,
+      'antonio rüdiger': 138732,
+      'antonio rudiger': 138732,
+      'marquinhos': 138798,
+      'ousmane dembélé': 190473,
+      'ousmane dembele': 190473,
+      'achraf hakimi': 827553,
+      'vitinha': 966543,
+      'marcus thuram': 823980,
+      'hakan çalhanoğlu': 138937,
+      'hakan calhanoglu': 138937,
+      'erling haaland': 839956,
+      'mohamed salah': 159665,
+      'bukayo saka': 934235,
+      'declan rice': 856729,
+      'martin ødegaard': 858119,
+      'martin odegaard': 858119
+    };
+
+    function sofascorePhotoUrl(name) {
+      if (!name) return null;
+      const key = String(name).toLowerCase().trim();
+      const id = SOFASCORE_PHOTO[key];
+      if (id) return `https://img.sofascore.com/api/v1/player/${id}/image`;
+      const fuzzy = Object.keys(SOFASCORE_PHOTO).find(k => key.includes(k) || k.includes(key));
+      return fuzzy ? `https://img.sofascore.com/api/v1/player/${SOFASCORE_PHOTO[fuzzy]}/image` : null;
+    }
+
+    function applyGameweekLock() {
+      const deadline = new Date(GW_CONFIG.deadlineISO);
+      isGameweekLocked = Date.now() >= deadline.getTime();
+      updateDeadlineUI();
+      return isGameweekLocked;
+    }
+
+    function formatCountdown(ms) {
+      if (ms <= 0) return 'LOCKED';
+      const s = Math.floor(ms / 1000);
+      const d = Math.floor(s / 86400);
+      const h = Math.floor((s % 86400) / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const sec = s % 60;
+      if (d > 0) return `${d}d ${h}h ${m}m`;
+      return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }
+
+    function updateDeadlineUI() {
+      const deadline = new Date(GW_CONFIG.deadlineISO);
+      const left = deadline.getTime() - Date.now();
+      const locked = left <= 0;
+      const bar = document.getElementById('gw-deadline-bar');
+      const txt = document.getElementById('gw-deadline-text');
+      if (txt) {
+        txt.textContent = locked
+          ? `GW ${GW_CONFIG.gameweek} LOCKED — chips & transfers closed`
+          : `GW ${GW_CONFIG.gameweek} deadline in ${formatCountdown(left)}`;
+      }
+      if (bar) {
+        bar.style.background = locked ? 'rgba(239,68,68,0.18)' : 'rgba(255,183,3,0.12)';
+        bar.style.borderColor = locked ? '#EF4444' : 'var(--color-gold)';
+        bar.style.color = locked ? '#FCA5A5' : 'var(--color-gold)';
+      }
+    }
+
+    function guardIfLocked(actionLabel) {
+      applyGameweekLock();
+      if (isGameweekLocked) {
+        alert(`⚠️ Gameweek ${GW_CONFIG.gameweek} has started!\n${actionLabel || 'This action'} is locked until the next deadline.`);
+        return true;
+      }
+      return false;
+    }
 
     /* DYNAMIC DATABASE CACHE & SEPARATE SQUADS */
     let allPlayersFromSupabase = [];
@@ -1742,10 +1925,26 @@
         }
       }, 80);
 
+      try {
+        const savedJoin = JSON.parse(localStorage.getItem('ha_joined_leagues') || '{}');
+        if (savedJoin.EPL) joinedLeagues.EPL = true;
+        if (savedJoin.UCL) joinedLeagues.UCL = true;
+      } catch (e) {}
+
+      applyGameweekLock();
+      setInterval(() => {
+        const wasLocked = isGameweekLocked;
+        applyGameweekLock();
+        if (!wasLocked && isGameweekLocked) {
+          refreshLivePointsAndSave();
+        }
+      }, 1000);
+
       updateWalletDisplay();
       updateJoinButtons();
       renderFixtures('EPL');
       await fetchPlayersFromSupabase();
+      refreshLivePointsAndSave();
 
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -1766,10 +1965,6 @@
           console.warn('⚠️ No Telegram user — running outside Telegram?');
         }
       }
-
-      // Start realtime leaderboard updates once boot finishes.
-      subscribeToLeaderboard();
-      fetchLiveLeaderboard(currentContestLeague);
     });
 
     async function fetchPlayersFromSupabase() {
@@ -1810,8 +2005,8 @@
             leagueType: leagueType,
             team: p.club || p.team || '',
             price: Number(p.price_m || p.price || 5.0),
-            totalPts: p.total_points || p.current_points || Math.floor(Math.random() * 35) + 5,
-            photoUrl: p.photo_url || p.face_url || ''
+            totalPts: Number(p.total_points || p.current_points || 0),
+            photoUrl: sofascorePhotoUrl(p.name) || p.photo_url || p.face_url || ''
           };
         });
 
@@ -1876,64 +2071,38 @@
       }
     }
 
-    async function joinLeagueFromWallet(leagueName) {
+    function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
-
+      
       if (joinedLeagues[leagueName]) {
-        alert('ℹ️ You already joined the ' + leagueName + ' contest this week!');
+        alert('ℹ️ You have already paid and joined the ' + leagueName + ' contest this week!');
         setSquadLeague(leagueName);
         navigateTo('squad');
         return;
       }
 
-      if (isGameweekLocked) {
-        alert(`⚠️ The ${leagueName} contest has already kicked off — new entries are closed.`);
-        return;
-      }
-
       if (walletBalance < entryFee) {
-        alert('⚠️ Insufficient balance! Need 100 ETB. Please deposit first.');
+        alert('⚠️ Insufficient wallet balance! You need 100 ETB to enter the ' + leagueName + ' contest. Please deposit first.');
         navigateTo('wallet');
-        return;
-      }
-
-      if (!supabaseClient || !currentTelegramId) {
-        alert('⚠️ Please open this app inside Telegram to enter the contest.');
-        return;
-      }
-
-      try {
-        const { error } = await supabaseClient
-          .from('user_squads')
-          .upsert({
-            telegram_id: currentTelegramId,
-            user_name: currentUserName,
-            league: leagueName,
-            gameweek: 1,
-            formation: currentFormation || '4-3-3',
-            players: [],
-            captain_id: null,
-            vice_captain_id: null,
-            active_chip: null,
-            total_points: 0
-          }, { onConflict: 'telegram_id,league,gameweek', ignoreDuplicates: true });
-
-        if (error) {
-          console.error('Join error:', error);
-          alert('❌ Could not join contest: ' + error.message);
-          return;
-        }
-      } catch (e) {
-        console.error(e);
-        alert('❌ Network error: ' + e.message);
         return;
       }
 
       walletBalance -= entryFee;
       joinedLeagues[leagueName] = true;
+      try { localStorage.setItem('ha_joined_leagues', JSON.stringify(joinedLeagues)); } catch (e) {}
       updateWalletDisplay();
       updateJoinButtons();
-      alert('🎉 Joined the ' + leagueName + ' contest! You are on the live leaderboard.');
+
+      // Persist paid flag so the real name shows on the live board
+      if (supabaseClient && currentTelegramId) {
+        supabaseClient.from('user_squads').update({ paid: true, user_name: currentUserName })
+          .eq('telegram_id', currentTelegramId)
+          .eq('league', leagueName)
+          .eq('gameweek', GW_CONFIG.gameweek)
+          .then(({ error }) => { if (error) console.warn('paid flag:', error.message); });
+      }
+      
+      alert('🎉 Entered the ' + leagueName + ' contest! 100 ETB deducted.\nYour name will now show on the live leaderboard.');
       setSquadLeague(leagueName);
       navigateTo('squad');
     }
@@ -2014,10 +2183,8 @@
     }
 
     async function saveSquad() {
-      if (isGameweekLocked) {
-        alert("⚠️ Gameweek has started! Squad is locked.");
-        return;
-      }
+      if (guardIfLocked('Saving / changing your squad')) return;
+
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
 
       if (currentSquad.length < 15) {
@@ -2025,13 +2192,14 @@
         return;
       }
 
-      const gkp = currentSquad.filter(p => p.pos === 'GKP').length;
+      const gkp = currentSquad.filter(p => p.pos === 'GKP' || p.pos === 'GK').length;
       const def = currentSquad.filter(p => p.pos === 'DEF').length;
       const mid = currentSquad.filter(p => p.pos === 'MID').length;
       const fwd = currentSquad.filter(p => p.pos === 'FWD').length;
 
-      if (gkp !== 2 || def < 3 || mid < 2 || fwd < 1) {
-        alert(`⚠️ Invalid squad composition.\nNeed exactly 2 GKP, at least 3 DEF, 2 MID, 1 FWD.\nYou have: ${gkp} GKP, ${def} DEF, ${mid} MID, ${fwd} FWD`);
+      // Minimums: 2 GKP, 3 DEF, 3 MID, 1 FWD (no hard max on DEF/MID/FWD beyond 15 total)
+      if (gkp !== 2 || def < 3 || mid < 3 || fwd < 1) {
+        alert(`⚠️ Invalid squad composition.\nNeed: 2 GKP, at least 3 DEF, 3 MID, 1 FWD.\nYou have: ${gkp} GKP, ${def} DEF, ${mid} MID, ${fwd} FWD`);
         return;
       }
 
@@ -2049,6 +2217,11 @@
       const viceCaptainId = currentSquadLeague === 'EPL' ? viceCaptainIdEPL : viceCaptainIdUCL;
       const activeChip = currentSquadLeague === 'EPL' ? activeChipEPL : activeChipUCL;
 
+      if (!captainId) {
+        alert("⚠️ Captain required!\nTap a player on the pitch and choose Make Captain before saving.");
+        return;
+      }
+
       const squadPayload = currentSquad.map(p => ({
         id: p.id,
         name: p.name,
@@ -2058,16 +2231,22 @@
         photoUrl: p.photoUrl || ''
       }));
 
+      const livePts = computeSquadPoints(
+        currentSquad, captainId, activeChip, currentFormation
+      );
+
       const row = {
         telegram_id: currentTelegramId,
         user_name: currentUserName,
         league: currentSquadLeague,
-        gameweek: 1,
+        gameweek: GW_CONFIG.gameweek,
         formation: currentFormation,
         players: squadPayload,
         captain_id: captainId,
         vice_captain_id: viceCaptainId,
-        active_chip: activeChip || null
+        active_chip: activeChip || null,
+        total_points: livePts,
+        paid: !!joinedLeagues[currentSquadLeague]
       };
 
       console.log('📤 Saving squad:', row);
@@ -2079,14 +2258,24 @@
           .select();
 
         if (error) {
-          console.error('❌ Save error:', error);
-          alert("❌ Failed to save squad:\n" + error.message);
-          return;
+          // Retry without `paid` if that column is not in the table yet
+          if (String(error.message || '').toLowerCase().includes('paid')) {
+            delete row.paid;
+            const retry = await supabaseClient.from('user_squads').upsert(row, { onConflict: 'telegram_id,league,gameweek' }).select();
+            if (retry.error) {
+              alert("❌ Failed to save squad:\n" + retry.error.message);
+              return;
+            }
+          } else {
+            console.error('❌ Save error:', error);
+            alert("❌ Failed to save squad:\n" + error.message);
+            return;
+          }
         }
 
         console.log('✅ Saved:', data);
         // Do NOT lock on save — chips & transfers stay open until real GW deadline
-        alert(`✅ Your ${currentSquadLeague} squad has been saved! You can still change chips and make transfers until the gameweek starts.`);
+        alert(`✅ Your ${currentSquadLeague} squad has been saved!\nCaptain set. Live points: ${livePts}\nYou can still change chips and transfers until the GW deadline.`);
       } catch (e) {
         console.error('❌ Exception:', e);
         alert("❌ Network error: " + e.message);
@@ -2135,6 +2324,67 @@
       '3-2-4-1': { def: 3, mid: 2, fwd: 5 },
       '2-3-5':   { def: 2, mid: 3, fwd: 5 }
     };
+
+    function computeSquadPoints(squad, captainId, chip, formationName) {
+      if (!Array.isArray(squad) || !squad.length) return 0;
+      const form = FORMATIONS[formationName] || FORMATIONS['4-3-3'];
+      const gkps = squad.filter(p => p.pos === 'GKP' || p.pos === 'GK');
+      const defs = squad.filter(p => p.pos === 'DEF');
+      const mids = squad.filter(p => p.pos === 'MID');
+      const fwds = squad.filter(p => p.pos === 'FWD');
+      const starters = [
+        ...gkps.slice(0, 1),
+        ...defs.slice(0, form.def),
+        ...mids.slice(0, form.mid),
+        ...fwds.slice(0, form.fwd)
+      ];
+      const starterIds = new Set(starters.map(p => p.id));
+      const bench = squad.filter(p => !starterIds.has(p.id));
+      const scoring = chip === 'BB' ? [...starters, ...bench] : starters;
+      const capMult = chip === 'TC' ? 3 : 2;
+      let total = 0;
+      scoring.forEach(p => {
+        const base = Number(p.totalPts || 0);
+        total += (p.id === captainId) ? base * capMult : base;
+      });
+      return Math.round(total);
+    }
+
+    async function refreshLivePointsAndSave() {
+      if (!supabaseClient) return;
+      try {
+        const { data } = await supabaseClient
+          .from('players')
+          .select('id, total_points, current_points');
+        if (data && data.length) {
+          const byId = {};
+          data.forEach(r => { byId[r.id] = Number(r.total_points || r.current_points || 0); });
+          allPlayersFromSupabase.forEach(p => {
+            if (byId[p.id] != null) p.totalPts = byId[p.id];
+          });
+          const sync = (arr) => arr.forEach(p => { if (byId[p.id] != null) p.totalPts = byId[p.id]; });
+          sync(selectedSquadEPL);
+          sync(selectedSquadUCL);
+        }
+      } catch (e) {
+        console.warn('live points refresh:', e);
+      }
+
+      if (!currentTelegramId) return;
+      const push = async (league, squad, cap, chip) => {
+        if (!squad || squad.length < 11) return;
+        const pts = computeSquadPoints(squad, cap, chip, currentFormation);
+        try {
+          await supabaseClient.from('user_squads')
+            .update({ total_points: pts })
+            .eq('telegram_id', currentTelegramId)
+            .eq('league', league)
+            .eq('gameweek', GW_CONFIG.gameweek);
+        } catch (e) {}
+      };
+      await push('EPL', selectedSquadEPL, captainIdEPL, activeChipEPL);
+      await push('UCL', selectedSquadUCL, captainIdUCL, activeChipUCL);
+    }
 
     function setFormation(f) {
       currentFormation = f;
@@ -2273,10 +2523,7 @@
     }
 
     async function toggleChip(chipName) {
-      if (isGameweekLocked) {
-        alert("⚠️ Gameweek contest has started! Chips cannot be modified.");
-        return;
-      }
+      if (guardIfLocked('Chips')) return;
 
       // Only one chip at a time — tap same chip again to cancel
       if (currentSquadLeague === 'EPL') {
@@ -2513,6 +2760,7 @@
     }
 
     function setCaptain() {
+      if (guardIfLocked('Changing captain')) return;
       if (selectedPlayerForAction) {
         if (currentSquadLeague === 'EPL') {
           if (selectedPlayerForAction.id === viceCaptainIdEPL) viceCaptainIdEPL = captainIdEPL;
@@ -2636,6 +2884,8 @@
 
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
 
+      const currency = currentSquadLeague === 'UCL' ? '€' : '£';
+
       filtered.forEach(p => {
         const isSelected = currentSquad.some(item => item.id === p.id);
         const item = document.createElement('div');
@@ -2649,29 +2899,27 @@
           btnText = 'Transfer In';
         }
 
+        // Market: identify by TEAM JERSEY (kit) first — modern shirt card
         const jerseyUrl = getTeamJerseyUrl(p.team);
-        let avatarHtml;
-        if (p.photoUrl) {
-          const fb = jerseyUrl
-            ? `this.onerror=null; this.src='${jerseyUrl}'; this.style.objectFit='contain'; this.style.padding='2px'; this.style.background='#fff';`
-            : `this.onerror=null; this.outerHTML='<i class=\\'fa-solid fa-shirt\\' style=\\'font-size:1.2rem; color:var(--color-gold);\\'></i>';`;
-          avatarHtml = `<img src="${p.photoUrl}" width="32" height="32" loading="lazy" style="border-radius:50%; object-fit:cover; object-position:center top; background:#1a1208;" onerror="${fb}" />`;
-        } else if (jerseyUrl) {
-          avatarHtml = `<img src="${jerseyUrl}" width="32" height="32" loading="lazy" style="border-radius:50%; object-fit:contain; padding:2px; background:#fff;" onerror="this.onerror=null; this.outerHTML='<i class=\\'fa-solid fa-shirt\\' style=\\'font-size:1.2rem; color:var(--color-gold);\\'></i>';" />`;
+        let jerseyHtml;
+        if (jerseyUrl) {
+          jerseyHtml = `<img src="${jerseyUrl}" alt="${p.team || ''}" loading="lazy" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fa-solid fa-shirt\\' style=\\'color:var(--color-gold);font-size:1.25rem;\\'></i>';" />`;
         } else {
-          avatarHtml = `<i class="fa-solid fa-shirt" style="font-size:1.2rem; color:var(--color-gold);"></i>`;
+          jerseyHtml = `<i class="fa-solid fa-shirt" style="color:var(--color-gold);font-size:1.25rem;"></i>`;
         }
 
         item.innerHTML = `
-          <div style="display:flex; align-items:center; gap:8px;">
-            ${avatarHtml}
-            <div>
-              <strong>${p.name}</strong> <small>(${p.pos} - ${p.team})</small>
+          <div class="market-jersey">${jerseyHtml}</div>
+          <div class="market-meta">
+            <strong>${p.name}</strong>
+            <div class="market-sub">
+              <span class="market-pos-pill">${p.pos}</span>
+              <span>${p.team || ''}</span>
             </div>
           </div>
-          <div>
-            <span style="margin-right: 8px;">£${p.price}m</span>
-            <button class="btn btn-primary" style="padding: 4px 8px; font-size:0.75rem;" ${isSelected ? 'disabled' : ''} onclick="${btnAction}">
+          <div style="display:flex; align-items:center; flex-shrink:0;">
+            <span class="market-price">${currency}${p.price}m</span>
+            <button class="btn btn-primary market-add-btn" ${isSelected ? 'disabled' : ''} onclick="${btnAction}">
               ${isSelected ? 'Added' : btnText}
             </button>
           </div>
@@ -2681,22 +2929,31 @@
     }
 
     function addPlayer(id) {
+      if (guardIfLocked('Adding players')) return;
       const player = allPlayersFromSupabase.find(p => p.id === id);
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
 
-      if (!player || currentSquad.length >= 15) return;
+      if (!player || currentSquad.length >= 15) {
+        if (currentSquad.length >= 15) alert("⚠️ Squad is full (15/15). Remove a player or use transfers.");
+        return;
+      }
       if (squadBudget < player.price) {
         alert("Not enough budget!");
         return;
       }
 
       const pos = (player.pos || '').toUpperCase();
-      const maxByPos = { GKP: 2, GK: 2, DEF: 5, MID: 5, FWD: 3 };
-      const maxAllowed = maxByPos[pos] || 5;
-      const posCount = currentSquad.filter(p => (p.pos || '').toUpperCase() === pos || (pos === 'GKP' && (p.pos || '').toUpperCase() === 'GK')).length;
-      if (posCount >= maxAllowed) {
-        alert(`⚠️ You already have the maximum ${maxAllowed} ${pos} players in your squad!`);
-        return;
+      // Soft max only for GKP (only 2 goalkeeper slots). DEF/MID/FWD — no hard cap on add.
+      // Final composition checked on save: min 3 DEF, 3 MID, 1 FWD, exactly 2 GKP.
+      if (pos === 'GKP' || pos === 'GK') {
+        const gkpCount = currentSquad.filter(p => {
+          const pp = (p.pos || '').toUpperCase();
+          return pp === 'GKP' || pp === 'GK';
+        }).length;
+        if (gkpCount >= 2) {
+          alert("⚠️ Maximum 2 goalkeepers in your squad.");
+          return;
+        }
       }
 
       currentSquad.push(player);
@@ -2705,17 +2962,14 @@
 
       recalculateBudget();
       renderPitch();
-      filterMarket('ALL');
+      filterMarket(currentMarketPos || 'ALL');
     }
-
-    /* ============================================================
-       LIVE LEADERBOARD
-       ============================================================ */
 
     function setContestLeague(league) {
       currentContestLeague = league;
       document.getElementById('toggle-epl').classList.toggle('active', league === 'EPL');
       document.getElementById('toggle-ucl').classList.toggle('active', league === 'UCL');
+
       const banner = document.getElementById('contest-hero-banner');
       const title = document.getElementById('contest-hero-title');
       const sub = document.getElementById('contest-hero-sub');
@@ -2727,163 +2981,147 @@
       if (sub) sub.innerText = league === 'EPL'
         ? 'Build your squad • Climb the live board • Win ETB prizes'
         : 'UCL stage • Live rankings • Big prize pool';
+      
       loadLeaderboardData();
     }
 
     function setContestMode(mode) {
       currentContestMode = mode;
-      const liveBtn = document.getElementById('c-mode-live');
-      const historyBtn = document.getElementById('c-mode-history');
-      if (liveBtn) liveBtn.className = mode === 'live' ? 'btn btn-primary' : 'btn btn-secondary';
-      if (historyBtn) historyBtn.className = mode === 'history' ? 'btn btn-primary' : 'btn btn-secondary';
-      const dot = document.getElementById('live-dot-indicator');
-      if (dot) dot.style.display = mode === 'live' ? 'inline-block' : 'none';
-      const subtitle = document.getElementById('leaderboard-subtitle');
-      if (subtitle) subtitle.innerText = mode === 'live'
-        ? 'Live Realtime Rankings' : 'Last Week Contest Final History';
+      document.getElementById('c-mode-live').className = mode === 'live' ? 'btn btn-primary' : 'btn btn-secondary';
+      document.getElementById('c-mode-history').className = mode === 'history' ? 'btn btn-primary' : 'btn btn-secondary';
+      
+      document.getElementById('live-dot-indicator').style.display = mode === 'live' ? 'inline-block' : 'none';
+      document.getElementById('leaderboard-subtitle').innerText = mode === 'live' ? 'Live Realtime Rankings' : 'Last Week Contest Final History';
+
       loadLeaderboardData();
     }
 
     function loadLeaderboardData() {
-      if (currentContestMode === 'history') renderHistoryLeaderboard(currentContestLeague);
-      else fetchLiveLeaderboard(currentContestLeague);
+      if (currentContestMode === 'history') {
+        renderHistoryLeaderboard(currentContestLeague);
+      } else {
+        fetchLiveLeaderboard(currentContestLeague);
+      }
     }
 
     async function fetchLiveLeaderboard(league) {
-      if (!supabaseClient) { renderEmptyLeaderboard(league); return; }
+      if (!supabaseClient) {
+        renderSimulatedLeaderboard(league, false);
+        return;
+      }
 
-      const { data: managers, error } = await supabaseClient
+      let managers = null;
+      let error = null;
+      const full = await supabaseClient
         .from('user_squads')
-        .select('telegram_id, user_name, total_points, league, gameweek')
+        .select('user_name, total_points, paid, telegram_id')
         .eq('league', league)
-        .eq('gameweek', 1)
-        .order('total_points', { ascending: false, nullsFirst: false })
+        .order('total_points', { ascending: false })
         .limit(100);
+      if (full.error) {
+        const basic = await supabaseClient
+          .from('user_squads')
+          .select('user_name, total_points, telegram_id')
+          .eq('league', league)
+          .order('total_points', { ascending: false })
+          .limit(100);
+        managers = basic.data;
+        error = basic.error;
+      } else {
+        managers = full.data;
+      }
 
-      if (error) {
-        console.warn('Leaderboard fetch error:', error.message);
-        renderEmptyLeaderboard(league);
+      if (error || !managers || managers.length === 0) {
+        renderSimulatedLeaderboard(league, false);
         return;
       }
-      if (!managers || managers.length === 0) {
-        renderEmptyLeaderboard(league);
-        return;
-      }
 
-      const seen = new Set();
-      const unique = managers.filter(m => {
-        const key = String(m.telegram_id || m.user_name);
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-
-      renderLeaderboardRows(unique, league, false);
-    }
-
-    function renderEmptyLeaderboard(league) {
-      const players = document.getElementById('cnt-players');
-      const pool = document.getElementById('cnt-prizepool');
-      const bd = document.getElementById('prize-breakdown-list');
-      const tbody = document.getElementById('leaderboard-tbody');
-      if (players) players.innerText = '0';
-      if (pool) pool.innerText = '0 ETB';
-      if (bd) bd.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);">No contest entries yet</div>';
-      if (tbody) tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--color-text-muted);padding:24px;">No managers have joined the ${league} contest yet.<br><span style="font-size:0.7rem;">Be the first — pay 100 ETB to enter!</span></td></tr>`;
+      renderLeaderboardRows(managers, league, false);
     }
 
     function renderHistoryLeaderboard(league) {
-      const data = league === 'EPL' ? [
-        { user_name:'OGB_Special', total_points:156 },
-        { user_name:'Adonay_T', total_points:148 },
-        { user_name:'Manager_Alex', total_points:139 },
-        { user_name:'Gunner_Addis', total_points:131 },
-        { user_name:'Kaleb_F', total_points:124 }
+      const historyData = league === 'EPL' ? [
+        { user_name: "OGB_Special", total_points: 156 },
+        { user_name: "Adonay_T", total_points: 148 },
+        { user_name: "Manager_Alex", total_points: 139 },
+        { user_name: "Gunner_Addis", total_points: 131 },
+        { user_name: "Kaleb_F", total_points: 124 }
       ] : [
-        { user_name:'Ha_Champion', total_points:162 },
-        { user_name:'Real_Fan_ET', total_points:151 },
-        { user_name:'Adonay_T', total_points:144 },
-        { user_name:'Tewodros_K', total_points:138 },
-        { user_name:'Manager_Alex', total_points:130 }
+        { user_name: "Ha_Champion", total_points: 162 },
+        { user_name: "Real_Fan_ET", total_points: 151 },
+        { user_name: "Adonay_T", total_points: 144 },
+        { user_name: "Tewodros_K", total_points: 138 },
+        { user_name: "Manager_Alex", total_points: 130 }
       ];
-      renderLeaderboardRows(data, league, true);
+
+      renderLeaderboardRows(historyData, league, true);
     }
 
     function renderLeaderboardRows(managers, league, isHistory) {
       const tbody = document.getElementById('leaderboard-tbody');
-      if (!tbody) return;
       tbody.innerHTML = '';
 
       const totalCollected = managers.length * 100;
       const prizePool = league === 'EPL' ? totalCollected * 0.7278 : totalCollected * 0.70;
-      const playersEl = document.getElementById('cnt-players');
-      const poolEl = document.getElementById('cnt-prizepool');
-      if (playersEl) playersEl.innerText = managers.length;
-      if (poolEl) poolEl.innerText = `${Math.round(prizePool).toLocaleString()} ETB`;
 
-      const payoutPct = league === 'EPL'
-        ? [0.43,0.215,0.175,0.075,0.075,0.015,0.015,0.015,0.0075,0.0075]
-        : [0.40,0.20,0.12,0.08,0.06,0.04,0.03,0.03,0.02,0.02];
+      document.getElementById('cnt-players').innerText = managers.length;
+      document.getElementById('cnt-prizepool').innerText = `${Math.round(prizePool).toLocaleString()} ETB`;
 
-      const box = document.getElementById('prize-breakdown-list');
-      if (box) {
-        box.innerHTML = '';
-        payoutPct.forEach((pct, i) => {
-          const amt = Math.round(totalCollected * pct);
-          const div = document.createElement('div');
-          div.style.display = 'flex';
-          div.style.justifyContent = 'space-between';
-          div.innerHTML = `<span>Rank #${i + 1}:</span><strong style="color:var(--color-gold);">${amt.toLocaleString()} ETB</strong>`;
-          box.appendChild(div);
-        });
-      }
+      const payoutPercentages = league === 'EPL' 
+        ? [0.43, 0.215, 0.175, 0.075, 0.075, 0.015, 0.015, 0.015, 0.0075, 0.0075]
+        : [0.40, 0.20, 0.12, 0.08, 0.06, 0.04, 0.03, 0.03, 0.02, 0.02];
 
-      const medals = ['🥇','🥈','🥉'];
+      const breakdownBox = document.getElementById('prize-breakdown-list');
+      breakdownBox.innerHTML = '';
+      payoutPercentages.forEach((pct, i) => {
+        const prizeAmount = Math.round(totalCollected * pct);
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.innerHTML = `<span>Rank #${i + 1}:</span><strong style="color:var(--color-gold);">${prizeAmount.toLocaleString()} ETB</strong>`;
+        breakdownBox.appendChild(item);
+      });
+
+      const medals = ['🥇', '🥈', '🥉'];
+
       managers.forEach((m, idx) => {
         const rankNum = idx + 1;
         const rankIcon = medals[idx] ? `${medals[idx]} #${rankNum}` : `#${rankNum}`;
-        const pts = Number(m.total_points) || 0;
-        const isMe = m.telegram_id && String(m.telegram_id) === String(currentTelegramId);
-        let prize = '--';
-        if (idx < payoutPct.length) {
-          const win = Math.round(totalCollected * payoutPct[idx]);
-          prize = `<span style="color:var(--color-gold);font-weight:800;">${win.toLocaleString()} ETB</span>`;
+
+        let prizeDisplay = '--';
+        if (idx < payoutPercentages.length) {
+          const winPrize = Math.round(totalCollected * payoutPercentages[idx]);
+          prizeDisplay = `<span style="color:var(--color-gold); font-weight:800;">${winPrize.toLocaleString()} ETB</span>`;
         }
+
+        const isMe = currentTelegramId && String(m.telegram_id) === String(currentTelegramId);
+        const paidName = m.paid === true || m.paid === 't' || m.paid === 1;
+        const localPaid = isMe && joinedLeagues[league];
+        const showName = isHistory || paidName || localPaid;
+        const displayName = showName
+          ? (m.user_name || 'Manager')
+          : 'Hidden Manager';
+
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td><strong>${rankIcon}</strong></td><td>${m.user_name || 'Ha Manager'} ${isMe ? '<span style="color:var(--color-gold);font-weight:800;"> (You)</span>' : ''} ${isHistory ? '👑' : ''}</td><td style="text-align:center;font-weight:bold;">${pts}</td><td style="text-align:right;">${prize}</td>`;
-        if (isMe) tr.style.background = 'rgba(255,183,3,0.10)';
+        tr.innerHTML = `
+          <td><strong>${rankIcon}</strong></td>
+          <td>${displayName}${isMe ? ' <span style="color:var(--color-gold);font-size:0.65rem;">YOU</span>' : ''}${isHistory ? ' 👑' : ''}${!showName ? ' <span style="opacity:.55;font-size:0.62rem;">🔒</span>' : ''}</td>
+          <td style="text-align: center; font-weight:bold;">${m.total_points || 0}</td>
+          <td style="text-align: right;">${prizeDisplay}</td>
+        `;
         tbody.appendChild(tr);
       });
     }
 
-    function subscribeToLeaderboard() {
-      if (!supabaseClient || leaderboardChannel) return;
-      try {
-        leaderboardChannel = supabaseClient
-          .channel('leaderboard-live')
-          .on('postgres_changes',
-            { event:'*', schema:'public', table:'user_squads' },
-            payload => {
-              const changedLeague = (payload.new?.league || payload.old?.league || '').toUpperCase();
-              if (currentContestMode === 'live' && changedLeague === currentContestLeague) {
-                fetchLiveLeaderboard(currentContestLeague);
-              }
-            })
-          .subscribe(status => {
-            realtimeConnected = status === 'SUBSCRIBED';
-            updateLiveIndicator(realtimeConnected);
-          });
-      } catch (e) {
-        console.warn('Realtime subscribe failed:', e);
-        updateLiveIndicator(false);
-      }
-    }
-
-    function updateLiveIndicator(connected) {
-      const dot = document.getElementById('live-dot-indicator');
-      if (!dot) return;
-      dot.style.background = connected ? '#10B981' : '#EF4444';
-      dot.style.boxShadow = connected ? '0 0 8px #10B981' : '0 0 8px #EF4444';
+    function renderSimulatedLeaderboard(league, isHistory) {
+      const demoData = [
+        { user_name: "Adonay_T", total_points: 142 },
+        { user_name: "Manager_Alex", total_points: 138 },
+        { user_name: "OGB_Special", total_points: 135 },
+        { user_name: "Kaleb_F", total_points: 129 },
+        { user_name: "Ethiopia_FC", total_points: 120 }
+      ];
+      renderLeaderboardRows(demoData, league, isHistory);
     }
 
     function switchWalletTab(tab) {
