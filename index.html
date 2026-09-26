@@ -1509,7 +1509,7 @@
             <div class="dl-top"><span>Premier League lock</span><span id="dl-epl-when">—</span></div>
             <div class="dl-time" id="dl-epl-time">—</div>
           </div>
-          <div class="deadline-card ucl" id="dl-ucl-card">
+          <div class="deadline-card ucl" id="dl-ucl-card" style="display:none;">
             <div class="dl-top"><span>Champions League lock</span><span id="dl-ucl-when">—</span></div>
             <div class="dl-time" id="dl-ucl-time">—</div>
           </div>
@@ -1517,7 +1517,7 @@
 
         <div class="contest-summary-card">
           <div class="metric-box">
-            <span class="metric-label" data-i18n="labelTotalPlayers">Joined Managers</span>
+            <span class="metric-label" data-i18n="labelTotalPlayers">Paid Managers</span>
             <span class="metric-val" id="cnt-players">--</span>
           </div>
           <div class="metric-box">
@@ -1526,13 +1526,16 @@
           </div>
         </div>
 
-        <!-- PRIZE DISTRIBUTION DISPLAY -->
-        <div style="background:var(--color-brown-card); border:1px solid var(--color-brown-border); padding:12px; border-radius:12px; margin-bottom:14px;">
-          <div style="font-size:0.75rem; color:var(--color-gold); font-weight:800; text-transform:uppercase; margin-bottom:6px;">
-            <i class="fa-solid fa-sack-dollar"></i> Winners Payout Breakdown
-          </div>
-          <div id="prize-breakdown-list" style="font-size:0.75rem; color:var(--color-text-muted); display:flex; flex-direction:column; gap:4px;">
-            <!-- Rendered dynamically -->
+        <!-- PAYOUT: button → expands list -->
+        <div style="margin-bottom:14px;">
+          <button type="button" class="btn btn-secondary" id="btn-payout-toggle" onclick="togglePayoutBreakdown()" style="width:100%;">
+            <i class="fa-solid fa-sack-dollar"></i> View Payout Breakdown
+          </button>
+          <div id="prize-breakdown-panel" style="display:none; margin-top:8px; background:var(--color-brown-card); border:1px solid var(--color-brown-border); padding:12px; border-radius:12px;">
+            <div style="font-size:0.72rem; color:var(--color-gold); font-weight:800; text-transform:uppercase; margin-bottom:8px;">
+              Winners Payout — <span id="payout-league-label">EPL</span>
+            </div>
+            <div id="prize-breakdown-list" style="font-size:0.75rem; color:var(--color-text-muted); display:flex; flex-direction:column; gap:4px;"></div>
           </div>
         </div>
 
@@ -1698,7 +1701,7 @@
             <h2 style="color:var(--color-gold); font-size:2rem; margin:8px 0;" id="p-modal-points">0 PTS</h2>
             <p style="font-size:0.75rem; color:var(--color-text-muted);">Total Points (Real-Time)</p>
           </div>
-          <div style="display:flex; flex-direction:column; gap:10px;">
+          <div id="player-edit-actions" style="display:flex; flex-direction:column; gap:10px;">
             <button class="btn btn-primary" onclick="setCaptain()">Make Captain (C)</button>
             <button class="btn btn-secondary" onclick="setViceCaptain()">Make Vice Captain (VC)</button>
             <button class="btn btn-secondary" style="border-color:var(--color-gold); color:var(--color-gold);" onclick="startSwapProcess()">
@@ -1708,6 +1711,22 @@
               <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer Out (Free)
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW OTHER MANAGER SQUAD (read-only) -->
+    <div id="modal-view-team" class="modal">
+      <div class="modal-content" style="max-height:85vh; overflow-y:auto;">
+        <div class="modal-header">
+          <h3 id="view-team-title">Manager Squad</h3>
+          <button style="background:none; border:none; color:white; font-size:1.5rem;" onclick="closeViewTeamModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="text-align:center; margin-bottom:12px; color:var(--color-text-muted); font-size:0.78rem;">
+            <span id="view-team-meta">Read-only · points only</span>
+          </div>
+          <div id="view-team-list" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
       </div>
     </div>
@@ -1860,15 +1879,47 @@
       paintDeadlineCard('dl-epl', 'EPL');
       paintDeadlineCard('dl-ucl', 'UCL');
       paintDeadlineCard('dl-squad', currentSquadLeague || 'EPL');
+
+      // Contest section: only show the deadline for the selected league
+      const eplCard = document.getElementById('dl-epl-card');
+      const uclCard = document.getElementById('dl-ucl-card');
+      const contestLg = currentContestLeague || 'EPL';
+      if (eplCard) eplCard.style.display = contestLg === 'EPL' ? '' : 'none';
+      if (uclCard) uclCard.style.display = contestLg === 'UCL' ? '' : 'none';
+
       const hist = document.getElementById('c-mode-history');
       if (hist) hist.style.display = GW_CONFIG.gameweek >= 2 ? '' : 'none';
+
+      // After lock: disable edit controls on squad (FPL-style — points only)
+      const locked = isGameweekLocked;
+      const disableIds = ['chip-tc', 'chip-bb', 'btn-squad-pay'];
+      disableIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.disabled = locked;
+          el.style.opacity = locked ? '0.45' : '';
+          el.style.pointerEvents = locked ? 'none' : '';
+        }
+      });
+      document.querySelectorAll('#sec-squad .btn').forEach(btn => {
+        const t = (btn.textContent || '').toLowerCase();
+        if (t.includes('market') || t.includes('save')) {
+          btn.disabled = locked;
+          btn.style.opacity = locked ? '0.45' : '';
+          btn.style.pointerEvents = locked ? 'none' : '';
+        }
+      });
+      const lab = document.getElementById('dl-squad-label');
+      if (lab && locked) {
+        lab.textContent = (currentSquadLeague || 'EPL') + ' locked — points only';
+      }
     }
 
     function guardIfLocked(actionLabel) {
       applyGameweekLock();
       if (isGameweekLocked) {
         const lg = currentSquadLeague || 'EPL';
-        alert(`⚠️ ${lg} GW ${GW_CONFIG.gameweek} is locked.\n${actionLabel || 'This action'} opens again after the next deadline.`);
+        alert(`⚠️ ${lg} deadline has passed.\nNo more team edits or chips — live points only (like FPL).`);
         return true;
       }
       return false;
@@ -2134,19 +2185,26 @@
 
     function joinLeagueFromWallet(leagueName) {
       const entryFee = 100;
-      
+
+      // Each league is a separate 100 ETB entry — EPL and UCL are independent
       if (joinedLeagues[leagueName]) {
-        alert('ℹ️ You have already paid and joined the ' + leagueName + ' contest this week!');
+        alert('ℹ️ You already paid 100 ETB and joined the ' + leagueName + ' contest this week.');
         setSquadLeague(leagueName);
         navigateTo('squad');
         return;
       }
 
       if (walletBalance < entryFee) {
-        alert('⚠️ Insufficient wallet balance! You need 100 ETB to enter the ' + leagueName + ' contest. Please deposit first.');
+        alert('⚠️ Need 100 ETB to enter ' + leagueName + '.\nEPL and UCL are separate — pay 100 for each league you want to join.');
         navigateTo('wallet');
         return;
       }
+
+      const other = leagueName === 'EPL' ? 'UCL' : 'EPL';
+      const msg = joinedLeagues[other]
+        ? `Pay 100 ETB to also join ${leagueName}? (You already paid for ${other}.)`
+        : `Pay 100 ETB to enter the ${leagueName} prize contest?\n\n• Only paid managers appear on the ${leagueName} leaderboard\n• To join both leagues you pay 100 + 100 = 200 ETB`;
+      if (!confirm(msg)) return;
 
       walletBalance -= entryFee;
       joinedLeagues[leagueName] = true;
@@ -2154,18 +2212,49 @@
       updateWalletDisplay();
       updateJoinButtons();
 
-      // Persist paid flag so the real name shows on the live board
+      // Mark paid for THIS league only (so they appear on that board)
       if (supabaseClient && currentTelegramId) {
-        supabaseClient.from('user_squads').update({ paid: true, user_name: currentUserName })
-          .eq('telegram_id', currentTelegramId)
-          .eq('league', leagueName)
-          .eq('gameweek', GW_CONFIG.gameweek)
-          .then(({ error }) => { if (error) console.warn('paid flag:', error.message); });
+        (async () => {
+          const payload = {
+            telegram_id: currentTelegramId,
+            user_name: currentUserName,
+            league: leagueName,
+            gameweek: GW_CONFIG.gameweek,
+            paid: true,
+            total_points: 0
+          };
+          const { error } = await supabaseClient
+            .from('user_squads')
+            .upsert(payload, { onConflict: 'telegram_id,league,gameweek' });
+          if (error) {
+            // Fallback if paid column missing or incomplete row
+            await supabaseClient.from('user_squads')
+              .update({ paid: true, user_name: currentUserName })
+              .eq('telegram_id', currentTelegramId)
+              .eq('league', leagueName)
+              .eq('gameweek', GW_CONFIG.gameweek);
+            console.warn('join paid upsert:', error.message);
+          }
+        })();
       }
-      
-      alert('🎉 Entered the ' + leagueName + ' contest! 100 ETB deducted.\nYour name will now show on the live leaderboard.');
+
+      alert('🎉 Joined ' + leagueName + '! 100 ETB deducted.\nYou are now on the paid leaderboard for ' + leagueName + ' only.');
       setSquadLeague(leagueName);
       navigateTo('squad');
+      if (typeof loadLeaderboardData === 'function') loadLeaderboardData();
+    }
+
+    function togglePayoutBreakdown() {
+      const panel = document.getElementById('prize-breakdown-panel');
+      const btn = document.getElementById('btn-payout-toggle');
+      if (!panel) return;
+      const open = panel.style.display !== 'none';
+      panel.style.display = open ? 'none' : 'block';
+      if (btn) {
+        btn.innerHTML = open
+          ? '<i class="fa-solid fa-sack-dollar"></i> View Payout Breakdown'
+          : '<i class="fa-solid fa-chevron-up"></i> Hide Payout Breakdown';
+      }
     }
 
     async function loadSavedSquads() {
@@ -2795,11 +2884,17 @@
       selectedPlayerForAction = player;
       document.getElementById('p-modal-name').innerText = player.name;
       document.getElementById('p-modal-team').innerText = `${player.pos} (${player.team}) - £${player.price}m`;
-      document.getElementById('p-modal-points').innerText = `${player.totalPts} PTS`;
+      document.getElementById('p-modal-points').innerText = `${player.totalPts || 0} PTS`;
+      applyGameweekLock();
+      const editBox = document.getElementById('player-edit-actions');
+      if (editBox) {
+        editBox.style.display = isGameweekLocked ? 'none' : 'flex';
+      }
       document.getElementById('modal-player').classList.add('active');
     }
 
     function startSwapProcess() {
+      if (guardIfLocked('Swaps')) return;
       swapFirstPlayer = selectedPlayerForAction;
       closePlayerModal();
       renderPitch();
@@ -2840,6 +2935,7 @@
     }
 
     function setViceCaptain() {
+      if (guardIfLocked('Vice captain')) return;
       if (selectedPlayerForAction) {
         if (currentSquadLeague === 'EPL') {
           if (selectedPlayerForAction.id === captainIdEPL) captainIdEPL = viceCaptainIdEPL;
@@ -2854,10 +2950,7 @@
     }
 
     function openTransferMarketForPlayer() {
-      if (isGameweekLocked) {
-        alert("⚠️ Gameweek contest has started! Transfers are locked.");
-        return;
-      }
+      if (guardIfLocked('Transfers')) return;
       transferOutPlayer = selectedPlayerForAction;
       closePlayerModal();
       filterMarket(transferOutPlayer.pos);
@@ -2865,6 +2958,7 @@
     }
 
     function completeTransfer(newPlayer) {
+      if (guardIfLocked('Transfers')) return;
       if (!transferOutPlayer) return;
 
       const currentSquad = currentSquadLeague === 'EPL' ? selectedSquadEPL : selectedSquadUCL;
@@ -3046,7 +3140,17 @@
       if (sub) sub.innerText = league === 'EPL'
         ? 'Build your squad • Climb the live board • Win ETB prizes'
         : 'UCL stage • Live rankings • Big prize pool';
-      
+
+      const payoutLabel = document.getElementById('payout-league-label');
+      if (payoutLabel) payoutLabel.textContent = league;
+
+      // Close payout panel when switching league so numbers refresh on next open
+      const panel = document.getElementById('prize-breakdown-panel');
+      if (panel) panel.style.display = 'none';
+      const btn = document.getElementById('btn-payout-toggle');
+      if (btn) btn.innerHTML = '<i class="fa-solid fa-sack-dollar"></i> View Payout Breakdown';
+
+      updateDeadlineUI();
       loadLeaderboardData();
     }
 
@@ -3069,83 +3173,96 @@
       }
     }
 
+    function isPaidFlag(v) {
+      return v === true || v === 't' || v === 1 || v === '1' || v === 'true';
+    }
+
     async function fetchLiveLeaderboard(league) {
       if (!supabaseClient) {
-        renderSimulatedLeaderboard(league, false);
+        renderEmptyLeaderboard(league);
         return;
       }
 
-      let managers = null;
-      let error = null;
+      // Only PAID managers for this league appear on the board
+      let managers = [];
       const full = await supabaseClient
         .from('user_squads')
-        .select('user_name, total_points, paid, telegram_id')
+        .select('user_name, total_points, paid, telegram_id, players, formation, captain_id, active_chip')
         .eq('league', league)
+        .eq('gameweek', GW_CONFIG.gameweek)
         .order('total_points', { ascending: false })
-        .limit(100);
+        .limit(150);
+
       if (full.error) {
         const basic = await supabaseClient
           .from('user_squads')
-          .select('user_name, total_points, telegram_id')
+          .select('user_name, total_points, paid, telegram_id')
           .eq('league', league)
           .order('total_points', { ascending: false })
-          .limit(100);
-        managers = basic.data;
-        error = basic.error;
+          .limit(150);
+        managers = (basic.data || []).filter(m => isPaidFlag(m.paid));
       } else {
-        managers = full.data;
+        managers = (full.data || []).filter(m => isPaidFlag(m.paid));
       }
 
-      if (error || !managers || managers.length === 0) {
-        renderSimulatedLeaderboard(league, false);
-        return;
+      // Also treat local paid state for current user if DB lag
+      if (joinedLeagues[league] && currentTelegramId) {
+        const me = managers.find(m => String(m.telegram_id) === String(currentTelegramId));
+        if (!me) {
+          // Don't invent points — only show if they have a row after pay upsert
+        }
       }
 
       renderLeaderboardRows(managers, league, false);
     }
 
-    function renderHistoryLeaderboard(league) {
-      const historyData = league === 'EPL' ? [
-        { user_name: "OGB_Special", total_points: 156 },
-        { user_name: "Adonay_T", total_points: 148 },
-        { user_name: "Manager_Alex", total_points: 139 },
-        { user_name: "Gunner_Addis", total_points: 131 },
-        { user_name: "Kaleb_F", total_points: 124 }
-      ] : [
-        { user_name: "Ha_Champion", total_points: 162 },
-        { user_name: "Real_Fan_ET", total_points: 151 },
-        { user_name: "Adonay_T", total_points: 144 },
-        { user_name: "Tewodros_K", total_points: 138 },
-        { user_name: "Manager_Alex", total_points: 130 }
-      ];
+    function renderEmptyLeaderboard(league) {
+      renderLeaderboardRows([], league, false);
+    }
 
-      renderLeaderboardRows(historyData, league, true);
+    function renderHistoryLeaderboard(league) {
+      // Only after GW 2
+      renderLeaderboardRows([], league, true);
     }
 
     function renderLeaderboardRows(managers, league, isHistory) {
       const tbody = document.getElementById('leaderboard-tbody');
       tbody.innerHTML = '';
 
-      const totalCollected = managers.length * 100;
+      const paidCount = managers.length;
+      const totalCollected = paidCount * 100;
       const prizePool = league === 'EPL' ? totalCollected * 0.7278 : totalCollected * 0.70;
 
-      document.getElementById('cnt-players').innerText = managers.length;
+      document.getElementById('cnt-players').innerText = paidCount;
       document.getElementById('cnt-prizepool').innerText = `${Math.round(prizePool).toLocaleString()} ETB`;
 
-      const payoutPercentages = league === 'EPL' 
+      const payoutPercentages = league === 'EPL'
         ? [0.43, 0.215, 0.175, 0.075, 0.075, 0.015, 0.015, 0.015, 0.0075, 0.0075]
         : [0.40, 0.20, 0.12, 0.08, 0.06, 0.04, 0.03, 0.03, 0.02, 0.02];
 
       const breakdownBox = document.getElementById('prize-breakdown-list');
-      breakdownBox.innerHTML = '';
-      payoutPercentages.forEach((pct, i) => {
-        const prizeAmount = Math.round(totalCollected * pct);
-        const item = document.createElement('div');
-        item.style.display = 'flex';
-        item.style.justifyContent = 'space-between';
-        item.innerHTML = `<span>Rank #${i + 1}:</span><strong style="color:var(--color-gold);">${prizeAmount.toLocaleString()} ETB</strong>`;
-        breakdownBox.appendChild(item);
-      });
+      if (breakdownBox) {
+        breakdownBox.innerHTML = '';
+        if (paidCount === 0) {
+          breakdownBox.innerHTML = '<div style="opacity:0.7;">No paid managers yet — prize pool is 0.</div>';
+        } else {
+          payoutPercentages.forEach((pct, i) => {
+            const prizeAmount = Math.round(totalCollected * pct);
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.innerHTML = `<span>Rank #${i + 1}:</span><strong style="color:var(--color-gold);">${prizeAmount.toLocaleString()} ETB</strong>`;
+            breakdownBox.appendChild(item);
+          });
+        }
+      }
+
+      if (paidCount === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--color-text-muted);padding:18px;">
+          No paid managers yet.<br><span style="font-size:0.72rem;">Pay 100 ETB for ${league} to appear here.</span>
+        </td></tr>`;
+        return;
+      }
 
       const medals = ['🥇', '🥈', '🥉'];
 
@@ -3161,11 +3278,15 @@
 
         const isMe = currentTelegramId && String(m.telegram_id) === String(currentTelegramId);
         const displayName = m.user_name || 'Manager';
+        const tid = m.telegram_id != null ? String(m.telegram_id) : '';
 
         const tr = document.createElement('tr');
+        tr.style.cursor = 'pointer';
+        tr.title = 'Tap to view squad (read-only)';
+        tr.onclick = () => viewManagerTeam(league, tid, displayName, m);
         tr.innerHTML = `
           <td><strong>${rankIcon}</strong></td>
-          <td>${displayName}${isMe ? ' <span style="color:var(--color-gold);font-size:0.65rem;">YOU</span>' : ''}${isHistory ? ' 👑' : ''}</td>
+          <td>${displayName}${isMe ? ' <span style="color:var(--color-gold);font-size:0.65rem;">YOU</span>' : ''} <span style="opacity:0.5;font-size:0.62rem;">👁</span></td>
           <td style="text-align: center; font-weight:bold;">${m.total_points || 0}</td>
           <td style="text-align: right;">${prizeDisplay}</td>
         `;
@@ -3173,15 +3294,67 @@
       });
     }
 
-    function renderSimulatedLeaderboard(league, isHistory) {
-      const demoData = [
-        { user_name: "Adonay_T", total_points: 142 },
-        { user_name: "Manager_Alex", total_points: 138 },
-        { user_name: "OGB_Special", total_points: 135 },
-        { user_name: "Kaleb_F", total_points: 129 },
-        { user_name: "Ethiopia_FC", total_points: 120 }
-      ];
-      renderLeaderboardRows(demoData, league, isHistory);
+    async function viewManagerTeam(league, telegramId, displayName, cachedRow) {
+      const modal = document.getElementById('modal-view-team');
+      const list = document.getElementById('view-team-list');
+      const title = document.getElementById('view-team-title');
+      const meta = document.getElementById('view-team-meta');
+      if (!modal || !list) return;
+
+      title.textContent = (displayName || 'Manager') + ' · ' + league;
+      meta.textContent = 'Read-only · you cannot edit this squad';
+      list.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:12px;">Loading squad…</div>';
+      modal.classList.add('active');
+
+      let row = cachedRow;
+      if ((!row || !row.players) && supabaseClient && telegramId) {
+        const { data } = await supabaseClient
+          .from('user_squads')
+          .select('players, formation, captain_id, vice_captain_id, active_chip, total_points, paid')
+          .eq('telegram_id', telegramId)
+          .eq('league', league)
+          .eq('gameweek', GW_CONFIG.gameweek)
+          .maybeSingle();
+        if (data) row = data;
+      }
+
+      const players = Array.isArray(row?.players) ? row.players : [];
+      if (!players.length) {
+        list.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:16px;">This manager has not saved a squad yet.</div>';
+        return;
+      }
+
+      const capId = row.captain_id;
+      const vcId = row.vice_captain_id;
+      const chip = chipFromDb(row.active_chip);
+      meta.textContent = `Formation ${row.formation || '—'} · ${row.total_points || 0} pts` +
+        (chip ? ` · Chip: ${chip}` : '') + ' · Read-only';
+
+      const order = { GKP: 0, GK: 0, DEF: 1, MID: 2, FWD: 3 };
+      const sorted = [...players].sort((a, b) => (order[a.pos] ?? 9) - (order[b.pos] ?? 9));
+
+      list.innerHTML = '';
+      sorted.forEach(p => {
+        const isC = p.id === capId;
+        const isVC = p.id === vcId;
+        const badge = isC ? '<span style="color:var(--color-gold);font-weight:900;margin-left:4px;">C</span>'
+          : (isVC ? '<span style="color:#93C5FD;font-weight:900;margin-left:4px;">VC</span>' : '');
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(0,0,0,0.25);border-radius:8px;border:1px solid var(--color-brown-border);';
+        div.innerHTML = `
+          <div>
+            <strong style="font-size:0.85rem;">${p.name || 'Player'}${badge}</strong>
+            <div style="font-size:0.68rem;color:var(--color-text-muted);">${p.pos || ''} · ${p.team || ''}</div>
+          </div>
+          <div style="font-size:0.75rem;color:var(--color-gold);font-weight:800;">£${p.price != null ? p.price : '—'}m</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function closeViewTeamModal() {
+      const modal = document.getElementById('modal-view-team');
+      if (modal) modal.classList.remove('active');
     }
 
     function switchWalletTab(tab) {
