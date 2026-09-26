@@ -2138,9 +2138,8 @@
         try { await refreshLivePointsAndSave(); } catch (e) {}
       })();
 
-      setInterval(() => {
-        enrichPlayersFromFpl().then(() => refreshLivePointsAndSave()).catch(() => {});
-      }, 180000);
+      // Real-time points + live fixtures trackers
+      try { startLiveTrackers(); } catch (e) { console.warn('live trackers', e); }
 
       if (window.Telegram?.WebApp) {
         const tg = window.Telegram.WebApp;
@@ -2397,42 +2396,115 @@
     }
 
     async function fetchLiveFixturesFromApis() {
-      // EPL from FPL fixtures
+      // --- EPL: worldcup26.ir (CORS-open) then FPL fallback ---
       try {
-        const boot = await loadFplBootstrap();
-        let eventId = GW_CONFIG.gameweek;
-        if (boot && boot.events) {
-          const cur = boot.events.find(e => e.is_current) || boot.events.find(e => e.is_next);
-          if (cur) eventId = cur.id;
-        }
-        const fixtures = await fetchFplJson(`/fixtures/?event=${eventId}`);
-        const teamsById = {};
-        if (boot && boot.teams) boot.teams.forEach(t => { teamsById[t.id] = t.short_name || t.name; });
-        const epl = (fixtures || []).map(f => {
-          const home = teamsById[f.team_h] || `Team ${f.team_h}`;
-          const away = teamsById[f.team_a] || `Team ${f.team_a}`;
-          let status = 'Upcoming';
-          let time = f.kickoff_time ? new Date(f.kickoff_time).toLocaleString('en-GB', { timeZone: 'Africa/Addis_Ababa', weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '';
-          let score = 'vs';
-          if (f.finished) {
-            status = 'FT';
-            score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
-            time = 'Completed';
-          } else if (f.started) {
-            status = 'LIVE';
-            score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
-            time = 'Live';
+        const res = await fetch('https://worldcup26.ir/get/soccer/eng.1/fixtures?status=all', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          const events = data.events || [];
+          const mapped = events.map(ev => {
+            const comp = (ev.competitions && ev.competitions[0]) || {};
+            const comps = comp.competitors || [];
+            const homeC = comps.find(c => c.homeAway === 'home') || comps[0] || {};
+            const awayC = comps.find(c => c.homeAway === 'away') || comps[1] || {};
+            const home = homeC.team?.displayName || homeC.name || (ev.name || '').split(' at ').pop() || 'Home';
+            const away = awayC.team?.displayName || awayC.name || (ev.name || '').split(' at ')[0] || 'Away';
+            // name format is often "Away at Home"
+            let homeName = homeC.team?.displayName || homeC.team?.name || homeC.name;
+            let awayName = awayC.team?.displayName || awayC.team?.name || awayC.name;
+            if (!homeName || !awayName) {
+              // parse "X at Y" => away=X home=Y
+              const parts = String(ev.name || '').split(' at ');
+              if (parts.length === 2) { awayName = parts[0].trim(); homeName = parts[1].trim(); }
+            }
+            const st = (comp.status && comp.status.type) || {};
+            const state = (st.state || '').toLowerCase();
+            const detail = st.shortDetail || st.detail || st.description || '';
+            let status = 'Upcoming';
+            let score = 'vs';
+            let time = '';
+            const hs = homeC.score;
+            const as = awayC.score;
+            if (st.completed || state === 'post' || /FT|Full Time/i.test(detail)) {
+              status = 'FT';
+              score = `${hs ?? 0} - ${as ?? 0}`;
+              time = 'Completed';
+            } else if (state === 'in' || /LIVE|1H|2H|HT|In Progress/i.test(detail + (comp.status?.displayClock || ''))) {
+              status = 'LIVE ' + (comp.status?.displayClock || detail || '');
+              score = `${hs ?? 0} - ${as ?? 0}`;
+              time = 'Live';
+            } else {
+              const kick = ev.date || comp.startDate || comp.date;
+              if (kick) {
+                time = new Date(kick).toLocaleString('en-GB', {
+                  timeZone: 'Africa/Addis_Ababa', weekday: 'short', day: 'numeric', month: 'short',
+                  hour: '2-digit', minute: '2-digit'
+                });
+              }
+            }
+            return {
+              home: homeName || 'Home',
+              away: awayName || 'Away',
+              score, status, time,
+              _ts: Date.parse(ev.date || comp.startDate || 0) || 0
+            };
+          });
+          // Prefer live + upcoming + recent FT
+          mapped.sort((a, b) => {
+            const rank = s => /LIVE/i.test(s) ? 0 : /FT/i.test(s) ? 2 : 1;
+            const r = rank(a.status) - rank(b.status);
+            return r !== 0 ? r : a._ts - b._ts;
+          });
+          const live = mapped.filter(m => /LIVE/i.test(m.status));
+          const up = mapped.filter(m => !/LIVE|FT/i.test(m.status)).slice(0, 8);
+          const ft = mapped.filter(m => /FT/i.test(m.status)).slice(-4);
+          const combined = [...live, ...up, ...ft].slice(0, 14).map(({ home, away, score, status, time }) => ({ home, away, score, status, time }));
+          if (combined.length) {
+            fixturesDatabase.EPL = combined;
+            console.log('EPL fixtures live:', combined.length);
           }
-          return { home, away, score, status, time };
-        });
-        if (epl.length) fixturesDatabase.EPL = epl;
+        }
       } catch (e) {
-        console.warn('EPL fixtures live fetch failed:', e.message || e);
+        console.warn('EPL worldcup26 fixtures failed:', e.message || e);
       }
 
-      // UCL fixtures from TheSportsDB (free, CORS-friendly)
+      // FPL fixtures fallback / enrich if EPL still static-looking
       try {
-        // League id 4480 = UEFA Champions League (TheSportsDB)
+        if (!fixturesDatabase.EPL || fixturesDatabase.EPL.length < 3) {
+          const boot = await loadFplBootstrap();
+          let eventId = GW_CONFIG.gameweek;
+          if (boot && boot.events) {
+            const cur = boot.events.find(e => e.is_current) || boot.events.find(e => e.is_next);
+            if (cur) eventId = cur.id;
+          }
+          const fixtures = await fetchFplJson(`/fixtures/?event=${eventId}`);
+          const teamsById = {};
+          if (boot && boot.teams) boot.teams.forEach(t => { teamsById[t.id] = t.short_name || t.name; });
+          const epl = (fixtures || []).map(f => {
+            const home = teamsById[f.team_h] || `Team ${f.team_h}`;
+            const away = teamsById[f.team_a] || `Team ${f.team_a}`;
+            let status = 'Upcoming';
+            let time = f.kickoff_time ? new Date(f.kickoff_time).toLocaleString('en-GB', { timeZone: 'Africa/Addis_Ababa', weekday: 'short', hour: '2-digit', minute: '2-digit' }) : '';
+            let score = 'vs';
+            if (f.finished) {
+              status = 'FT';
+              score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
+              time = 'Completed';
+            } else if (f.started) {
+              status = 'LIVE';
+              score = `${f.team_h_score ?? 0} - ${f.team_a_score ?? 0}`;
+              time = 'Live';
+            }
+            return { home, away, score, status, time };
+          });
+          if (epl.length) fixturesDatabase.EPL = epl;
+        }
+      } catch (e) {
+        console.warn('EPL FPL fixtures fallback failed:', e.message || e);
+      }
+
+      // --- UCL: TheSportsDB season events ---
+      try {
         const season = '2025-2026';
         const url = `https://www.thesportsdb.com/api/v1/json/3/eventsseason.php?id=4480&s=${season}`;
         const res = await fetch(url, { cache: 'no-store' });
@@ -2440,17 +2512,17 @@
           const data = await res.json();
           const events = data.events || [];
           const now = Date.now();
-          // Prefer upcoming + recent (last 7d / next 14d)
           const mapped = events.map(ev => {
             const home = ev.strHomeTeam || 'Home';
             const away = ev.strAwayTeam || 'Away';
             const hs = ev.intHomeScore;
             const as = ev.intAwayScore;
-            const ts = ev.strTimestamp ? Date.parse(ev.strTimestamp) : (ev.dateEvent ? Date.parse(ev.dateEvent + 'T' + (ev.strTime || '00:00') + 'Z') : 0);
+            const ts = ev.strTimestamp ? Date.parse(ev.strTimestamp)
+              : (ev.dateEvent ? Date.parse(ev.dateEvent + 'T' + (ev.strTime || '00:00') + 'Z') : 0);
             let status = 'Upcoming';
             let score = 'vs';
             let time = ev.strTime || ev.dateEvent || '';
-            if (ev.strStatus === 'Match Finished' || (hs != null && as != null && ts && ts < now - 2*3600*1000)) {
+            if (ev.strStatus === 'Match Finished' || (hs != null && as != null && ts && ts < now - 2 * 3600 * 1000)) {
               status = 'FT';
               score = `${hs ?? 0} - ${as ?? 0}`;
               time = 'Completed';
@@ -2459,27 +2531,97 @@
               score = `${hs ?? 0} - ${as ?? 0}`;
               time = 'Live';
             } else if (ts) {
-              time = new Date(ts).toLocaleString('en-GB', { timeZone: 'Africa/Addis_Ababa', weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+              time = new Date(ts).toLocaleString('en-GB', {
+                timeZone: 'Africa/Addis_Ababa', weekday: 'short', day: 'numeric', month: 'short',
+                hour: '2-digit', minute: '2-digit'
+              });
             }
             return { home, away, score, status, time, _ts: ts || 0 };
           });
-          // Sort: live first, then by time
           mapped.sort((a, b) => {
             const rank = s => /LIVE/i.test(s) ? 0 : /FT/i.test(s) ? 2 : 1;
             const r = rank(a.status) - rank(b.status);
-            if (r !== 0) return r;
-            return a._ts - b._ts;
+            return r !== 0 ? r : a._ts - b._ts;
           });
           const upcoming = mapped.filter(m => m.status !== 'FT').slice(0, 10);
           const recent = mapped.filter(m => m.status === 'FT').slice(-4);
-          const combined = [...upcoming, ...recent].slice(0, 12);
+          const combined = [...upcoming, ...recent].slice(0, 12)
+            .map(({ home, away, score, status, time }) => ({ home, away, score, status, time }));
           if (combined.length) {
-            fixturesDatabase.UCL = combined.map(({ home, away, score, status, time }) => ({ home, away, score, status, time }));
+            fixturesDatabase.UCL = combined;
+            console.log('UCL fixtures live:', combined.length);
           }
         }
       } catch (e) {
         console.warn('UCL fixtures live fetch failed:', e.message || e);
       }
+
+      // Mark last live sync time on UI if present
+      try {
+        const el = document.getElementById('fixtures-live-stamp');
+        if (el) el.textContent = 'Updated ' + new Date().toLocaleTimeString();
+      } catch (e) {}
+    }
+
+    /** Real-time point tracker — FPL live GW points for EPL, push to squads + leaderboard */
+    async function runLivePointTracker() {
+      try {
+        const en = await enrichPlayersFromFpl();
+        console.log('Live points enrich:', en);
+      } catch (e) {
+        console.warn('point tracker enrich', e);
+      }
+      try {
+        await refreshLivePointsAndSave();
+      } catch (e) {
+        console.warn('point tracker save', e);
+      }
+      try {
+        renderPitch();
+        if (typeof filterMarket === 'function') filterMarket(currentMarketPos || 'ALL');
+        if (currentContestMode === 'live' && typeof fetchLiveLeaderboard === 'function') {
+          fetchLiveLeaderboard(currentContestLeague || 'EPL');
+        }
+      } catch (e) {}
+      try {
+        const el = document.getElementById('points-live-stamp');
+        if (el) el.textContent = 'Points updated ' + new Date().toLocaleTimeString();
+      } catch (e) {}
+    }
+
+    function startLiveTrackers() {
+      // Fixtures every 90s, points every 60s
+      runLivePointTracker();
+      fetchLiveFixturesFromApis().then(() => {
+        try { renderFixtures(currentFixtureLeague || 'EPL'); } catch (e) {}
+      });
+      setInterval(() => {
+        fetchLiveFixturesFromApis().then(() => {
+          try { renderFixtures(currentFixtureLeague || 'EPL'); } catch (e) {}
+        }).catch(() => {});
+      }, 90000);
+      setInterval(() => {
+        runLivePointTracker().catch(() => {});
+      }, 60000);
+    }
+
+
+    /** Seed fallback — full roster lives in Supabase after CSV import */
+    async function ensureFullPlayerMarket() {
+      if (!allPlayersFromSupabase || allPlayersFromSupabase.length === 0) {
+        console.warn('No players loaded. Import players-all.csv into Supabase players table.');
+        const marketList = document.getElementById('market-list');
+        if (marketList) {
+          marketList.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">No players in database. Import <b>players-all.csv</b> in Supabase.</div>';
+        }
+        return 0;
+      }
+      try {
+        recalculateBudget();
+        renderPitch();
+        filterMarket(currentMarketPos || 'ALL');
+      } catch (e) {}
+      return allPlayersFromSupabase.length;
     }
 
     async function fetchPlayersFromSupabase() {
@@ -2502,7 +2644,9 @@
         }
 
         if (!data || data.length === 0) {
-          if (marketList) marketList.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">Players table is empty.</div>';
+          console.warn('Players table empty — loading full seed roster');
+          allPlayersFromSupabase = [];
+          await ensureFullPlayerMarket();
           return;
         }
 
@@ -2527,6 +2671,9 @@
             news: p.news || p.injury_news || ''
           };
         });
+
+        // Merge full EPL+UCL seed so market is never incomplete
+        await ensureFullPlayerMarket();
 
         recalculateBudget();
         renderPitch();
@@ -3040,18 +3187,25 @@
 
     function renderFixtures(league) {
       const container = document.getElementById('fixtures-container');
+      if (!container) return;
       container.innerHTML = '';
       const list = fixturesDatabase[league] || [];
+      if (!list.length) {
+        container.innerHTML = '<div style="text-align:center;color:var(--color-text-muted);padding:20px;">Loading live fixtures…</div>';
+        return;
+      }
 
       list.forEach(f => {
-        const isLive = f.status.includes('LIVE');
+        const isLive = /LIVE/i.test(String(f.status || ''));
+        const isFt = /FT|Completed/i.test(String(f.status || ''));
         const card = document.createElement('div');
         card.className = 'fixture-card';
+        const statusColor = isLive ? '#10B981' : (isFt ? 'var(--color-text-muted)' : 'var(--color-gold)');
         card.innerHTML = `
           <div class="fixture-meta">
-            <span>${league} • Gameweek Match</span>
-            <span style="color: ${isLive ? '#10B981' : 'var(--color-text-muted)'}; font-weight:bold;">
-              ${isLive ? '<span class="live-pulse-dot"></span>' : ''} ${f.status}
+            <span>${league}${f.time ? ' · ' + f.time : ''}</span>
+            <span style="color:${statusColor};font-weight:bold;">
+              ${isLive ? '<span class="live-pulse-dot"></span> ' : ''}${f.status}
             </span>
           </div>
           <div class="fixture-matchup">
